@@ -17,6 +17,7 @@ function App() {
 			<div className="flex gap-4 p-4">
 				{routes.map((route) => (
 					<NavLink
+						key={route.path}
 						to={route.path}
 						className={({ isActive }) => (isActive ? "text-primary" : "text-gray-500")}
 					>
