@@ -3,7 +3,13 @@
     "allow": [
       "Bash(pnpm add:*)",
       "Bash(mkdir:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(pnpx tailwindcss init:*)",
+      "Bash(./node_modules/.bin/tailwindcss init:*)",
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)",
+      "WebFetch(domain:tailwindcss.com)"
     ],
     "deny": []
   }

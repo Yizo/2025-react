@@ -1,19 +1,34 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import About from './pages/About';
+import { NavLink, Outlet } from "react-router";
+
+const routes = [
+	{
+		path: "/about",
+		label: "About",
+	},
+	{
+		path: "/",
+		label: "Home",
+	},
+];
 
 function App() {
-  return (
-    <Router>
-      <nav>
-        <Link to="/">Home</Link> | <Link to="/about">About</Link>
-      </nav>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-    </Router>
-  );
+	return (
+		<div className="min-h-screen bg-gray-100">
+			<div className="flex gap-4 p-4">
+				{routes.map((route) => (
+					<NavLink
+						to={route.path}
+						className={({ isActive }) => (isActive ? "text-primary" : "text-gray-500")}
+					>
+						{route.label}
+					</NavLink>
+				))}
+			</div>
+			<div className="mt-4">
+				<Outlet />
+			</div>
+		</div>
+	);
 }
 
 export default App;

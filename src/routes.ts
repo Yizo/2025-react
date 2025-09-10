@@ -1,28 +1,29 @@
 import { lazy } from "react";
+import { createBrowserRouter } from "react-router";
+import App from "./App";
 
-// 使用懒加载导入页面组件
-const Home = lazy(() => import("./pages/Home"));
-const About = lazy(() => import("./pages/About"));
+const base = import.meta.env.VITE_BASE;
 
-// 路由配置
-export interface RouteConfig {
-	path: string;
-	element: React.LazyExoticComponent<() => React.JSX.Element>;
-	label: string;
-	showInNav?: boolean;
-}
+console.log("base", base);
 
-export const routes: RouteConfig[] = [
+export const router = createBrowserRouter(
+	[
+		{
+			path: "/",
+			Component: App,
+			children: [
+				{
+					index: true,
+					Component: lazy(() => import("./pages/Home")),
+				},
+				{
+					path: "about",
+					Component: lazy(() => import("./pages/About")),
+				},
+			],
+		},
+	],
 	{
-		path: "/",
-		element: Home,
-		label: "Home",
-		showInNav: true,
-	},
-	{
-		path: "/about",
-		element: About,
-		label: "About",
-		showInNav: true,
-	},
-];
+		basename: base,
+	}
+);
