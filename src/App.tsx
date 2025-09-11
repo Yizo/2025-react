@@ -9,6 +9,10 @@ const routes = [
 		path: "/",
 		label: "Home",
 	},
+	{
+		path: "/useState",
+		label: "useState",
+	},
 ];
 
 function App() {

@@ -20,6 +20,10 @@ export const router = createBrowserRouter(
 					path: "about",
 					Component: lazy(() => import("./pages/About")),
 				},
+				{
+					path: "useState",
+					Component: lazy(() => import("./pages/useState")),
+				},
 			],
 		},
 		{
