@@ -17,7 +17,7 @@ createRoot(document.getElementById("root")!).render(
 			locale={zhCN}
 			theme={{
 				token: {
-					colorPrimary: import.meta.env.VITE_PRIMARY,
+					colorPrimary: import.meta.env.VITE_THEME,
 				},
 			}}
 		>

@@ -13,6 +13,10 @@ const routes = [
 		path: "/useState",
 		label: "useState",
 	},
+	{
+		path: "/useReducer",
+		label: "useReducer",
+	},
 ];
 
 function App() {

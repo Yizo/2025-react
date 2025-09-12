@@ -2,7 +2,7 @@ import { useState } from "react";
 import { produce } from "immer";
 import { Card, Space, Button, Divider, Tag } from "antd";
 
-function AddArray() {
+function ArrayList() {
 	const [arr, setArr] = useState<number[]>(() => {
 		return Array.from({ length: 10 }, (_, index) => index + 1);
 	});
@@ -45,7 +45,7 @@ function AddArray() {
 		<Card
 			className="shadow-md rounded-lg"
 			style={{ width: 300 }}
-			title="AddArray"
+			title="ArrayList"
 			extra={extra()}
 		>
 			<ul>
@@ -78,7 +78,7 @@ export default function Main() {
 	return (
 		<div className="p-6 mx-auto">
 			<Space size="middle">
-				<AddArray />
+				<ArrayList />
 			</Space>
 		</div>
 	);

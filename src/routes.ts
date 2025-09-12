@@ -24,6 +24,10 @@ export const router = createBrowserRouter(
 					path: "useState",
 					Component: lazy(() => import("./pages/useState")),
 				},
+				{
+					path: "useReducer",
+					Component: lazy(() => import("./pages/useReducer")),
+				},
 			],
 		},
 		{
