@@ -28,6 +28,10 @@ export const router = createBrowserRouter(
 					path: "useReducer",
 					Component: lazy(() => import("./pages/useReducer")),
 				},
+				{
+					path: "useSyncExternalStore",
+					Component: lazy(() => import("./pages/useSyncExternalStore")),
+				},
 			],
 		},
 		{

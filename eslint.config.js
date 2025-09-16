@@ -21,6 +21,20 @@ export default tseslint.config([
 		},
 		rules: {
 			"@typescript-eslint/no-explicit-any": "off",
+			"no-unused-vars": [
+				"warn",
+				{
+					varsIgnorePattern: "^_", // 忽略变量名
+					argsIgnorePattern: "^_", // 忽略函数参数名
+				},
+			],
+			"@typescript-eslint/no-unused-vars": [
+				"warn",
+				{
+					varsIgnorePattern: "^_",
+					argsIgnorePattern: "^_",
+				},
+			],
 		},
 	},
 ]);

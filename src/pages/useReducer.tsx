@@ -33,20 +33,16 @@ function createNewRow(nextId: number): RowItem {
 function reducer(state: RowItem[], action: Action): RowItem[] {
 	switch (action.type) {
 		case "add-end": {
-			const nextId =
-				Math.max(
-					0,
-					[...state].map((r) => r.id)
-				) + 1;
+			const nextId = Math.max(0, ...state.map((r) => r.id)) + 1;
 			return produce(state, (draft) => {
 				draft.push(createNewRow(nextId));
 			});
 		}
 		case "add-after": {
 			const nextId = Math.max(0, ...state.map((r) => r.id)) + 1;
-			const list = state.slice();
-			list.splice(action.index + 1, 0, createNewRow(nextId));
-			return list;
+			return produce(state, (draft) => {
+				draft.splice(action.index + 1, 0, createNewRow(nextId));
+			});
 		}
 		case "delete": {
 			const list = state.slice();

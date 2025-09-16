@@ -17,6 +17,10 @@ const routes = [
 		path: "/useReducer",
 		label: "useReducer",
 	},
+	{
+		path: "/useSyncExternalStore",
+		label: "useSyncExternalStore",
+	},
 ];
 
 function App() {
