@@ -2,6 +2,11 @@ import { useReducer } from "react";
 import { produce } from "immer";
 import { Table, Button, Divider, InputNumber } from "antd";
 
+/**
+ * 直接调用函数作为第二个参数：这个函数会在每次组件渲染时执行。[更简洁]
+ * 使用init函数：init函数只在组件初次渲染时执行一次。[性能好,更灵活]
+ */
+
 type RowItem = {
 	id: number;
 	item: string;

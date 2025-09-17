@@ -2,14 +2,6 @@ import { NavLink, Outlet } from "react-router";
 
 const routes = [
 	{
-		path: "/about",
-		label: "About",
-	},
-	{
-		path: "/",
-		label: "Home",
-	},
-	{
 		path: "/useState",
 		label: "useState",
 	},
@@ -23,7 +15,7 @@ const routes = [
 	},
 ];
 
-function App() {
+export default function BaseLayout() {
 	return (
 		<div className="min-h-screen bg-gray-100">
 			<div className="flex gap-4 p-4">
@@ -43,5 +35,3 @@ function App() {
 		</div>
 	);
 }
-
-export default App;

@@ -12,7 +12,7 @@ export default ({ mode }: { mode: string }) => {
 		plugins: [react(), tailwindcss()],
 		resolve: {
 			alias: {
-				"@": path.resolve(__dirname, "./src"),
+				"@": path.resolve(__dirname, "src"),
 			},
 		},
 		base: env.VITE_BASE,
