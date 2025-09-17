@@ -1,12 +1,13 @@
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 import type { RouteObject } from 'react-router'
-import { LazyImport, StaticLayout } from '@/components'
+import { LazyImport, StaticLayout, BaseLayout, ErrorBoundary as ErrorBoundaryComponent } from '@/components'
 
 export const routes: RouteObject[] = [
   {
     path: '/',
-    element: <LazyImport lazy={lazy(() => import('@/components/baseLayout'))} />,
+    element: <BaseLayout />,
+    ErrorBoundary: ErrorBoundaryComponent,
     children: [
       {
         path: 'state',
