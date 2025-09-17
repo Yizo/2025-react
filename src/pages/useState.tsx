@@ -76,7 +76,7 @@ function ArrayList() {
 }
 export default function Main() {
 	return (
-		<div className="p-6 mx-auto">
+		<div>
 			<Space size="middle">
 				<ArrayList />
 			</Space>

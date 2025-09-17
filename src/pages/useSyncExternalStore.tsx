@@ -19,7 +19,7 @@ function useOnlineStatus() {
 export default function Main() {
 	const isOnline = useOnlineStatus();
 	return (
-		<div className="box">
+		<div>
 			<h1>useSyncExternalStore</h1>
 			<div className="mt-4">
 				<div>isOnline: {isOnline ? "在线" : "离线"}</div>

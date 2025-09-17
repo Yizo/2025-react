@@ -169,7 +169,7 @@ function TableList() {
 
 export default function Main() {
 	return (
-		<div className="m-6 box">
+		<div>
 			<TableList />
 		</div>
 	);

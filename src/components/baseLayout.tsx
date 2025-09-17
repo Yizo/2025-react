@@ -34,8 +34,8 @@ export default function BaseLayout() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-gray-100">
-			<div className="flex gap-4 p-4">
+		<div className="min-h-screen bg-gray-100 flex flex-col p-4 gap-4">
+			<div className="flex-none">
 				<Menu
 					className="w-full"
 					onClick={handleClick}
@@ -44,7 +44,7 @@ export default function BaseLayout() {
 					mode="horizontal"
 				/>
 			</div>
-			<div>
+			<div className="box flex-auto p-4">
 				<Outlet />
 			</div>
 		</div>

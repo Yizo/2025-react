@@ -25,6 +25,14 @@ export const routes: RouteObject[] = [
 						},
 						element: <LazyImport lazy={lazy(() => import("@/pages/useState"))} />,
 					},
+					{
+						path: "useReducer",
+						handle: {
+							label: "useReducer",
+							title: "useReducer",
+						},
+						element: <LazyImport lazy={lazy(() => import("@/pages/useReducer"))} />,
+					},
 				],
 			},
 			{
@@ -33,7 +41,26 @@ export const routes: RouteObject[] = [
 					label: "状态管理",
 					title: "状态管理",
 				},
-				Component: lazy(() => import("@/pages/useReducer")),
+				element: <StaticLayout />,
+				children: [
+					{
+						index: true,
+						path: "useRef",
+						handle: {
+							label: "useRef",
+							title: "useRef",
+						},
+						element: <LazyImport lazy={lazy(() => import("@/pages/useRef"))} />,
+					},
+					{
+						path: "useContent",
+						handle: {
+							label: "useContent",
+							title: "useContent",
+						},
+						element: <LazyImport lazy={lazy(() => import("@/pages/useContent"))} />,
+					},
+				],
 			},
 			{
 				path: "useSyncExternalStore",
