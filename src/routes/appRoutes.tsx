@@ -1,5 +1,4 @@
 import { lazy } from "react";
-import type { ReactNode } from "react";
 import type { RouteObject } from "react-router";
 import {
 	LazyImport,
@@ -86,58 +85,3 @@ export const routes: RouteObject[] = [
 		Component: lazy(() => import("@/pages/NotFound")),
 	},
 ];
-
-export type MenuItem = {
-	key: string;
-	handle: Record<string, any> | undefined;
-	label: string | ReactNode;
-	title: string;
-	children?: MenuItem[];
-};
-
-function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
-	const result: MenuItem[] = [];
-
-	function handle(route: RouteObject, parentPath = "", parentItem: MenuItem | null = null) {
-		const fullPath = route.path
-			? route.path.startsWith("/")
-				? route.path
-				: `${parentPath}/${route.path}`.replace(/\/+/g, "/")
-			: parentPath;
-
-		const menuItem: MenuItem = {
-			key: fullPath,
-			label: route.handle?.label ?? "",
-			title: route.handle?.title ?? "",
-			handle: route.handle,
-		};
-
-		if (route.handle && route.handle.label) {
-			if (parentItem) {
-				if (!parentItem.children) {
-					parentItem.children = [];
-				}
-				parentItem.children.push(menuItem);
-			} else {
-				result.push(menuItem);
-			}
-		}
-
-		const children = (route.children || []).filter((item) => item.handle && item.handle.label);
-		if (children.length) {
-			for (let i = 0; i < children.length; i++) {
-				handle(children[i], fullPath, menuItem.label ? menuItem : null);
-			}
-		}
-	}
-
-	for (let i = 0; i < routes.length; i++) {
-		handle(routes[i]);
-	}
-
-	return result;
-}
-
-export const menus = routesToAntdMenu(routes);
-
-console.log("页面路由", menus);
