@@ -116,6 +116,14 @@ export const routes: RouteObject[] = [
 					},
 				],
 			},
+			{
+				path: "zustand",
+				handle: {
+					label: "zustand",
+					title: "zustand",
+				},
+				element: <LazyImport lazy={lazy(() => import("@/pages/zustand"))} />,
+			},
 		],
 	},
 	{
