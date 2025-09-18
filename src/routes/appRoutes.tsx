@@ -61,6 +61,16 @@ export const routes: RouteObject[] = [
 						element: <LazyImport lazy={lazy(() => import("@/pages/useRef"))} />,
 					},
 					{
+						path: "useImperativeHandle",
+						handle: {
+							label: "useImperativeHandle",
+							title: "useImperativeHandle",
+						},
+						element: (
+							<LazyImport lazy={lazy(() => import("@/pages/useImperativeHandle"))} />
+						),
+					},
+					{
 						path: "useContent",
 						handle: {
 							label: "useContent",
