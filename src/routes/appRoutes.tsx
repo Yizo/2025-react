@@ -43,7 +43,7 @@ export const routes: RouteObject[] = [
 				],
 			},
 			{
-				path: "useReducer",
+				path: "mana",
 				handle: {
 					label: "状态管理",
 					title: "状态管理",
@@ -81,17 +81,45 @@ export const routes: RouteObject[] = [
 				],
 			},
 			{
-				path: "useSyncExternalStore",
+				path: "sub",
 				handle: {
 					label: "订阅状态",
 					title: "订阅状态",
 				},
-				Component: lazy(() => import("@/pages/useSyncExternalStore")),
+				element: <LazyImport lazy={lazy(() => import("@/pages/useSyncExternalStore"))} />,
+			},
+			{
+				path: "perf",
+				handle: {
+					label: "性能优化",
+					title: "性能优化",
+					type: menuType.LAYOUT,
+				},
+				element: <StaticLayout />,
+				children: [
+					{
+						index: true,
+						path: "useMemo",
+						handle: {
+							label: "useMemo",
+							title: "useMemo",
+						},
+						element: <LazyImport lazy={lazy(() => import("@/pages/useMemo"))} />,
+					},
+					{
+						path: "useCallback",
+						handle: {
+							label: "useCallback",
+							title: "useCallback",
+						},
+						element: <LazyImport lazy={lazy(() => import("@/pages/useCallback"))} />,
+					},
+				],
 			},
 		],
 	},
 	{
 		path: "*",
-		Component: lazy(() => import("@/pages/NotFound")),
+		element: <LazyImport lazy={lazy(() => import("@/pages/NotFound"))} />,
 	},
 ];
