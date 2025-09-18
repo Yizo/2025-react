@@ -35,7 +35,6 @@ function processActiveMenuItem(activeItem: ActiveMenuItem | null): string {
 			const child = children[0];
 			currentItem = { ...child, pathParams: currentItem.pathParams } as ActiveMenuItem;
 		} else {
-			// 没有子路由，退出循环
 			break;
 		}
 	}
@@ -55,10 +54,12 @@ export default function BaseLayout() {
 
 	useEffect(() => {
 		const data = findActiveMenuItem(menus, location.pathname);
-		console.log("data", data);
 		if (data) {
 			const key = processActiveMenuItem(data);
-			console.log("key", key);
+			setCurrent(key);
+			navigate(key);
+		} else {
+			const key = processActiveMenuItem(menus[0] as ActiveMenuItem);
 			setCurrent(key);
 			navigate(key);
 		}
