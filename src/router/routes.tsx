@@ -64,6 +64,25 @@ export const routes: RouteObject[] = [
         ],
       },
       {
+        path: 'effect',
+        handle: {
+          label: '副作用',
+          title: '副作用',
+        },
+        element: <StaticLayout />,
+        children: [
+          {
+            index: true,
+            path: 'useEffect',
+            handle: {
+              label: 'useEffect',
+              title: 'useEffect',
+            },
+            element: <LazyImport lazy={lazy(() => import('@/pages/useEffect'))} />,
+          },
+        ],
+      },
+      {
         path: 'useSyncExternalStore',
         handle: {
           label: '订阅状态',

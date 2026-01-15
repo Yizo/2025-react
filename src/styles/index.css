@@ -1,13 +1,5 @@
-@import "tailwindcss";
-
-@theme {
-	--color-primary: var(--primary-color);
-}
-
-:root {
-	--primary-color: #6366f1; /* 默认主题 */
-}
+@import 'tailwindcss';
 
 .box {
-	@apply bg-white rounded-lg shadow-md;
+  @apply bg-white rounded-lg shadow-md;
 }
