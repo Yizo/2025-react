@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation, useNavigate, useMatches } from 'react-router'
 import { Menu } from 'antd'
-import { menus, type MenuItem } from '@/router/routes'
+import { useMenus } from '@/store/menu'
+import type { MenuItem } from '@/store/menu'
 
 export default function BaseLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const matches = useMatches()
   const [current, setCurrent] = useState('')
+  const menus = useMenus()
 
   //  根据地址栏查找当前激活菜单
   function findCurrentMenu(menus: MenuItem[], path: string) {

@@ -1,7 +1,8 @@
 import LazyImport from './LazyImport'
-import LazyLoading from './LazyLoading'
-import StaticLayout from './staticLayout'
-import BaseLayout from './baseLayout'
+import Loading from './Loading'
 import ErrorBoundary from './ErrorBoundary'
+import NotFound from './NotFound'
+import BaseLayout from './BaseLayout'
+import StaticLayout from './StaticLayout'
 
-export { LazyImport, LazyLoading, BaseLayout, StaticLayout, ErrorBoundary }
+export { LazyImport, Loading, ErrorBoundary, NotFound, BaseLayout, StaticLayout }
