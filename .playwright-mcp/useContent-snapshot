@@ -1,0 +1,54 @@
+### Page state
+- Page URL: http://localhost:5173/2025-react/useReducer/useContent
+- Page Title: Vite + React + TS
+- Page Snapshot:
+```yaml
+- generic [ref=e3]:
+  - menu [ref=e5]:
+    - menuitem "数据状态" [ref=e6] [cursor=pointer]
+    - menuitem "状态管理" [ref=e7] [cursor=pointer]
+    - menuitem "副作用" [ref=e8] [cursor=pointer]
+    - menuitem "订阅状态" [ref=e9] [cursor=pointer]
+    - menuitem [disabled]:
+      - img:
+        - img
+  - generic [ref=e20]:
+    - heading "跨组件数据通信示例" [level=2] [ref=e21]
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e26]: 计数器控制面板
+        - generic [ref=e28]:
+          - button "增 加" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: 增 加
+          - button "减 少" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: 减 少
+          - button "重 置" [ref=e36] [cursor=pointer]:
+            - generic [ref=e37]: 重 置
+      - generic [ref=e38]:
+        - generic [ref=e41]: 计数器显示
+        - generic [ref=e43]:
+          - generic [ref=e45]: 当前计数
+          - generic [ref=e47]: "0"
+      - generic [ref=e48]:
+        - generic [ref=e51]: 计数器状态
+        - generic [ref=e53]: "当前状态: 零"
+      - generic [ref=e54]:
+        - generic [ref=e57]: 操作历史
+        - paragraph [ref=e59]: 计数器已重置
+    - separator [ref=e60]
+    - generic [ref=e61]:
+      - generic [ref=e64]: 说明
+      - generic [ref=e65]:
+        - paragraph [ref=e66]: 这个示例演示了如何使用React Context实现跨组件数据通信：
+        - list [ref=e67]:
+          - listitem [ref=e68]:
+            - text: 使用
+            - code [ref=e69]: createContext
+            - text: 创建上下文
+          - listitem [ref=e70]:
+            - text: 使用
+            - code [ref=e71]: useContext
+            - text: 在子组件中消费数据
+          - listitem [ref=e72]: Provider 组件提供共享状态和更新方法
+          - listitem [ref=e73]: 多个子组件可以同时访问和修改同一个状态
+```

@@ -1,6 +1,11 @@
 {
   "globals": {
     "Button": true,
-    "Input": true
+    "Card": true,
+    "Divider": true,
+    "Input": true,
+    "Space": true,
+    "Statistic": true,
+    "Tag": true
   }
 }

@@ -11,5 +11,6 @@ declare global {
   const Divider: typeof import('antd').Divider
   const Input: typeof import('antd').Input
   const Space: typeof import('antd').Space
+  const Statistic: typeof import('antd').Statistic
   const Tag: typeof import('antd').Tag
 }
