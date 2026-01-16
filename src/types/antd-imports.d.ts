@@ -9,6 +9,7 @@ declare global {
   const Button: typeof import('antd').Button
   const Card: typeof import('antd').Card
   const Divider: typeof import('antd').Divider
+  const Input: typeof import('antd').Input
   const Space: typeof import('antd').Space
   const Tag: typeof import('antd').Tag
 }
