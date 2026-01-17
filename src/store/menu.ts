@@ -10,6 +10,7 @@ export interface RouteState {
   menus: MenuItem[]
   setRoutes: (routes: RouteObject[]) => void
   resetRoutes: () => void
+  getMenus: () => void | Promise<void>
 }
 
 export type MenuItem = {
@@ -18,6 +19,8 @@ export type MenuItem = {
   title: string
   children?: MenuItem[]
 }
+
+type PageFiles = Record<string, () => Promise<any>>
 
 function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
   const result: MenuItem[] = []
@@ -61,6 +64,14 @@ function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
   return result
 }
 
+async function getMenus() {
+  const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles
+  console.log('pages', pages)
+  return []
+}
+
+getMenus()
+
 export const useRouteStore = create<RouteState>()(
   persist(
     immer(
@@ -72,6 +83,10 @@ export const useRouteStore = create<RouteState>()(
             set({ routes, menus: routesToAntdMenu(routes) })
           },
           resetRoutes: () => set({ routes: [], menus: [] }),
+          getMenus: async () => {
+            const routes = await getMenus()
+            set({ routes })
+          },
         }),
         {
           enabled: true,

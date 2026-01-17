@@ -1,8 +1,10 @@
+import StaticLayout from './StaticLayout'
+
 const QuestionLayout = () => {
 	return (
 		<div>
 			<div>QuestionLayout-left</div>
-			<Outlet />
+			<StaticLayout />
 		</div>
 	);
 };

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Outlet, useLocation, useNavigate, useMatches } from 'react-router'
+import { useLocation, useNavigate, useMatches } from 'react-router'
 import { Menu } from 'antd'
 import { useMenus } from '@/store/menu'
 import type { MenuItem } from '@/store/menu'
+import StaticLayout from './StaticLayout'
 
 export default function BaseLayout() {
   const location = useLocation()
@@ -47,7 +48,7 @@ export default function BaseLayout() {
         <Menu className="w-full" onClick={handleClick} items={menus} selectedKeys={[current]} mode="horizontal" />
       </div>
       <div className="box flex-auto p-4">
-        <Outlet />
+        <StaticLayout />
       </div>
     </div>
   )
