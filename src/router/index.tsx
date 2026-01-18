@@ -5,7 +5,7 @@ import useStaticRoutes from './UserRouter'
 import StaticRouter from './StaticRouter'
 import ErrorRouter from './ErrorRouter'
 import { useMemo } from 'react'
-import BaseLayout from '@/layouts/BaseLayout'
+import MainLayout from '@/layouts/MainLayout'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import AuthRouter from './AuthRouter'
 
@@ -23,7 +23,12 @@ export default function App() {
       {
         element: <AuthRouter />,
         errorElement: <ErrorBoundary />,
-        children: dynamicRoutes
+        children: [
+          {
+            element: <MainLayout />,
+            children: dynamicRoutes,
+          },
+        ],
       },
     ]
 

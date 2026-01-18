@@ -28,6 +28,15 @@ export default ({ mode }: { mode: string }) => {
           enabled: true,
         },
       }),
+      AutoImport({
+        resolvers: [AntdResolver({
+          packageName: '@ant-design/icons'
+        })],
+        dts: 'src/types/antd-icons-imports.d.ts',
+        eslintrc: {
+          enabled: true,
+        },
+      }),
     ],
     resolve: {
       alias: {
