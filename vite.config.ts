@@ -27,16 +27,7 @@ export default ({ mode }: { mode: string }) => {
         eslintrc: {
           enabled: true,
         },
-      }),
-      AutoImport({
-        resolvers: [AntdResolver({
-          packageName: '@ant-design/icons'
-        })],
-        dts: 'src/types/antd-icons-imports.d.ts',
-        eslintrc: {
-          enabled: true,
-        },
-      }),
+      })
     ],
     resolve: {
       alias: {
