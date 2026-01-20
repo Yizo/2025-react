@@ -1,6 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet } from 'react-router';
 export default function StaticLayout() {
-  return (
-    <Outlet />
-  )
+  return <Outlet />;
 }

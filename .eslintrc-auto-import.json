@@ -1,12 +1,9 @@
 {
   "globals": {
     "Button": true,
-    "ConfigProvider": true,
     "Divider": true,
     "Layout": true,
-    "Menu": true,
     "Tag": true,
-    "message": true,
-    "theme": true
+    "message": true
   }
 }

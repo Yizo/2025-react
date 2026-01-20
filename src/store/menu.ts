@@ -1,76 +1,76 @@
-import { create } from 'zustand'
-import type { RouteObject } from 'react-router'
-import type { ReactNode } from 'react'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { immer } from 'zustand/middleware/immer'
-import { devtools } from 'zustand/middleware'
+import { create } from 'zustand';
+import type { RouteObject } from 'react-router';
+import type { ReactNode } from 'react';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import { devtools } from 'zustand/middleware';
 
 export interface RouteState {
-  routes: RouteObject[]
-  menus: MenuItem[]
-  setRoutes: (routes: RouteObject[]) => void
-  resetRoutes: () => void
-  getMenus: () => void | Promise<void>
+  routes: RouteObject[];
+  menus: MenuItem[];
+  setRoutes: (routes: RouteObject[]) => void;
+  resetRoutes: () => void;
+  getMenus: () => void | Promise<void>;
 }
 
 export type MenuItem = {
-  key: string
-  label: string | ReactNode
-  title: string
-  children?: MenuItem[]
-}
+  key: string;
+  label: string | ReactNode;
+  title: string;
+  children?: MenuItem[];
+};
 
-type PageFiles = Record<string, () => Promise<any>>
+type PageFiles = Record<string, () => Promise<any>>;
 
 function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
-  const result: MenuItem[] = []
+  const result: MenuItem[] = [];
 
   function handle(route: RouteObject, parentPath = '', parentItem: MenuItem | null = null) {
     const fullPath = route.path
       ? route.path.startsWith('/')
         ? route.path
         : `${parentPath}/${route.path}`.replace(/\/+/g, '/')
-      : parentPath
+      : parentPath;
 
     const menuItem: MenuItem = {
       key: fullPath,
       label: route.handle?.label ?? '',
       title: route.handle?.title ?? '',
-    }
+    };
 
     if (route.handle && route.handle.label) {
       if (parentItem) {
         if (!parentItem.children) {
-          parentItem.children = []
+          parentItem.children = [];
         }
-        parentItem.children.push(menuItem)
+        parentItem.children.push(menuItem);
       } else {
-        result.push(menuItem)
+        result.push(menuItem);
       }
     }
 
-    const children = (route.children || []).filter((item) => item.handle && item.handle.label)
+    const children = (route.children || []).filter((item) => item.handle && item.handle.label);
     if (children.length) {
       for (let i = 0; i < children.length; i++) {
-        handle(children[i], fullPath, menuItem.label ? menuItem : null)
+        handle(children[i], fullPath, menuItem.label ? menuItem : null);
       }
     }
   }
 
   for (let i = 0; i < routes.length; i++) {
-    handle(routes[i])
+    handle(routes[i]);
   }
 
-  return result
+  return result;
 }
 
 async function getMenus() {
-  const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles
-  console.log('pages', pages)
-  return []
+  const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles;
+  console.log('pages', pages);
+  return [];
 }
 
-getMenus()
+getMenus();
 
 export const useRouteStore = create<RouteState>()(
   persist(
@@ -80,12 +80,12 @@ export const useRouteStore = create<RouteState>()(
           routes: [],
           menus: [],
           setRoutes: (routes) => {
-            set({ routes, menus: routesToAntdMenu(routes) })
+            set({ routes, menus: routesToAntdMenu(routes) });
           },
           resetRoutes: () => set({ routes: [], menus: [] }),
           getMenus: async () => {
-            const routes = await getMenus()
-            set({ routes })
+            const routes = await getMenus();
+            set({ routes });
           },
         }),
         {
@@ -99,8 +99,8 @@ export const useRouteStore = create<RouteState>()(
       storage: createJSONStorage(() => sessionStorage),
     }
   )
-)
+);
 
-export const useMenus = () => useRouteStore((s) => s.menus)
+export const useMenus = () => useRouteStore((s) => s.menus);
 
-export const useDynamicRoutes = () => useRouteStore((s) => s.routes)
+export const useDynamicRoutes = () => useRouteStore((s) => s.routes);

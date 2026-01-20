@@ -1,5 +1,5 @@
-import { LazyImport } from '@/components'
-import type { RouteObject } from 'react-router'
+import { LazyImport } from '@/components';
+import type { RouteObject } from 'react-router';
 
 const errorRoutes: RouteObject[] = [
   {
@@ -10,6 +10,6 @@ const errorRoutes: RouteObject[] = [
     path: '*',
     element: <LazyImport lazy={lazy(() => import('@/components/NotFound'))} />,
   },
-]
+];
 
-export default errorRoutes
+export default errorRoutes;

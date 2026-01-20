@@ -1,4 +1,4 @@
-import { Col, Row, Spin } from 'antd'
+import { Col, Row, Spin } from 'antd';
 
 const Loading = () => {
   return (
@@ -7,7 +7,7 @@ const Loading = () => {
         <Spin spinning />
       </Col>
     </Row>
-  )
-}
+  );
+};
 
-export default Loading
+export default Loading;

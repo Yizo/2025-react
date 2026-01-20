@@ -1,3 +1,3 @@
 export default function Trash() {
-  return <div>Trash</div>
+  return <div>Trash</div>;
 }
