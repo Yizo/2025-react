@@ -18,18 +18,16 @@ let loadingInstance: ReturnType<typeof message.loading> | null = null;
 function LoadingManager() {
   function openLoading(text = '加载中...') {
     const currentLoading = useSystemStore.getState().loading;
-    useSystemStore.getState().addLoading();
-
     if (currentLoading === 0) {
       loadingInstance = message.loading(text, 0);
     }
+    useSystemStore.getState().addLoading();
   }
 
   function destroyLoading() {
     useSystemStore.getState().removeLoading();
     const afterRemove = useSystemStore.getState().loading;
     if (afterRemove === 0) {
-      console.log('destroyLoading');
       loadingInstance?.();
       loadingInstance = null;
     }
