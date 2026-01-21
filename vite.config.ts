@@ -40,6 +40,14 @@ export default ({ mode }: { mode: string }) => {
     },
     server: {
       host: true,
+      proxy: {
+        [env.VITE_API_BASE_URL]: {
+          target: env.VITE_API_TARGET,
+          changeOrigin: true,
+          // 将VITE_API_BASE_URL替换为空
+          rewrite: (path) => path.replace(env.VITE_API_BASE_URL, ''),
+        },
+      },
     },
   });
 };

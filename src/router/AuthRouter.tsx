@@ -22,7 +22,7 @@ export default function AuthRouter() {
       return;
     }
     if (!token) {
-      // navigate('/home')
+      navigate('/login');
     }
   }, [pathname, token]);
 

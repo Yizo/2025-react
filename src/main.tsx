@@ -31,11 +31,7 @@ export function MainApp() {
 }
 
 const root = createRoot(document.getElementById('root')!);
-root.render(
-  <StrictMode>
-    <MainApp />
-  </StrictMode>
-);
+root.render(<MainApp />);
 // 关闭loading
 const firstElement = document.getElementById('first');
 if (firstElement && firstElement.style?.display !== 'none') {

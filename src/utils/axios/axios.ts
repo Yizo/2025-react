@@ -1,17 +1,10 @@
 import axios from 'axios';
-import type {
-  AxiosInstance,
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-  AxiosRequestHeaders,
-} from 'axios';
+import type { AxiosInstance, AxiosError, AxiosResponse, AxiosRequestHeaders } from 'axios';
 import { message } from 'antd';
-
 import useUserStore from '@/store/user';
 import useSystemStore from '@/store/system';
 import { requestCancelManager } from './cancelManager';
-import type { CustomAxiosRequestConfig } from './types';
+import type { CustomAxiosRequestConfig, ApiResponse } from './types';
 
 let loadingInstance: ReturnType<typeof message.loading> | null = null;
 
@@ -44,7 +37,7 @@ const { openLoading, destroyLoading } = LoadingManager();
 /**
  * 请求拦截器
  */
-const requestInterceptor = (config: InternalAxiosRequestConfig) => {
+const requestInterceptor = (config: CustomAxiosRequestConfig) => {
   // 获取 token 并添加到 header
   const token = useUserStore.getState().token;
   openLoading();
@@ -55,12 +48,8 @@ const requestInterceptor = (config: InternalAxiosRequestConfig) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // 如果没有提供 signal，则使用管理器创建的 signal
-  if (config.url && !config.signal) {
-    const url = config.url || '';
-    const method = config.method || 'GET';
-    const controller = requestCancelManager.getController(url, method);
-    config.signal = controller.signal;
+  if (config.onBeforeRequest) {
+    return config.onBeforeRequest(config);
   }
 
   return config;
@@ -77,20 +66,26 @@ const requestErrorInterceptor = (error: AxiosError) => {
 /**
  * 响应拦截器
  */
-const responseInterceptor = (response: AxiosResponse) => {
-  const { data, request, config } = response;
+const responseInterceptor = (response: AxiosResponse): any => {
+  const { data } = response;
+  const config = response.config as CustomAxiosRequestConfig;
   destroyLoading();
   // 清除该请求的 cancel token
-  const url = config.url || '';
-  const method = config.method || 'GET';
-  requestCancelManager.clear(url, method);
-
-  // 如果是非json
-  if (request?.responseType !== 'json') {
-    return response;
+  if (config.url) {
+    const method = config.method || 'GET';
+    requestCancelManager.clear(config.url, method);
   }
 
-  return data;
+  if (config.onBeforeResponse) {
+    return config.onBeforeResponse(response);
+  }
+
+  return {
+    code: data?.code,
+    message: data?.message,
+    data: data?.data,
+    axiosResponse: response,
+  };
 };
 
 /**
@@ -102,10 +97,9 @@ const errorInterceptor = (error: AxiosError) => {
   const config = error.config as CustomAxiosRequestConfig;
 
   // 清除该请求的 cancel token
-  if (config) {
-    const url = config.url || '';
+  if (config.url) {
     const method = config.method || 'GET';
-    requestCancelManager.clear(url, method);
+    requestCancelManager.clear(config.url, method);
   }
 
   const errorData = error.response?.data as Record<string, any>;
@@ -130,7 +124,7 @@ const errorInterceptor = (error: AxiosError) => {
 
   // 请求发出了，但没收到响应: 网络错误 / 超时
   if (error.request) {
-    showErrorMessage(errorMessage);
+    showErrorMessage('网络错误/超时，请稍后再试');
     return Promise.reject(error);
   }
 
@@ -143,7 +137,7 @@ const errorInterceptor = (error: AxiosError) => {
 /**
  * 创建 axios 实例
  */
-export const createRequestInstance = (config?: CustomAxiosRequestConfig): AxiosInstance => {
+const createRequestInstance = (config?: CustomAxiosRequestConfig): AxiosInstance => {
   const instance = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
     timeout: 1000 * 60, // 60秒
@@ -155,81 +149,29 @@ export const createRequestInstance = (config?: CustomAxiosRequestConfig): AxiosI
   instance.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
 
   // 注册响应拦截器
-  instance.interceptors.response.use(responseInterceptor, errorInterceptor);
+  instance.interceptors.response.use(responseInterceptor, errorInterceptor) as any;
 
   return instance;
 };
 
-/**
- * 创建单例 axios 实例
- */
-const axiosInstance = createRequestInstance();
+export function useRequest(config: CustomAxiosRequestConfig) {
+  const axiosInstance = createRequestInstance(config);
 
-/**
- * 导出简化的请求方法
- */
-export const request = {
-  get: <R = any>(url: string, config?: CustomAxiosRequestConfig) =>
-    axiosInstance.get<R, R>(url, config),
+  const request = {
+    get: <T = any, R = ApiResponse<T>, D = any>(
+      url: string,
+      config?: CustomAxiosRequestConfig<D>
+    ) => axiosInstance.get<T, R, D>(url, config),
+    post: <T = any, R = ApiResponse<T>, D = any>(
+      url: string,
+      data?: D,
+      config?: CustomAxiosRequestConfig<D>
+    ) => axiosInstance.post<T, R, D>(url, data, config),
+  };
 
-  post: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) =>
-    axiosInstance.post<R, R>(url, data, config),
-
-  put: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) =>
-    axiosInstance.put<R, R>(url, data, config),
-
-  delete: <R = any>(url: string, config?: CustomAxiosRequestConfig) =>
-    axiosInstance.delete<R, R>(url, config),
-
-  patch: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) =>
-    axiosInstance.patch<R, R>(url, data, config),
-
-  /**
-   * 取消特定请求
-   */
-  cancel: (url: string, method: string = 'GET') => {
-    requestCancelManager.cancel(url, method);
-  },
-
-  /**
-   * 取消所有请求
-   */
-  cancelAll: () => {
-    requestCancelManager.cancelAll();
-  },
-
-  /**
-   * 获取原始 axios 实例，用于高级用法
-   */
-  getInstance: () => axiosInstance,
-};
-
-/**
- * 多功能 request - 返回包含 promise 和 cancel 方法的对象
- */
-export const requestManual = {
-  get: <R = any>(url: string, config?: CustomAxiosRequestConfig) => ({
-    promise: () => request.get<R>(url, config),
-    cancel: () => request.cancel(url, 'GET'),
-  }),
-
-  post: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) => ({
-    promise: () => request.post<D, R>(url, data, config),
-    cancel: () => request.cancel(url, 'POST'),
-  }),
-
-  put: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) => ({
-    promise: () => request.put<D, R>(url, data, config),
-    cancel: () => request.cancel(url, 'PUT'),
-  }),
-
-  delete: <R = any>(url: string, config?: CustomAxiosRequestConfig) => ({
-    promise: () => request.delete<R>(url, config),
-    cancel: () => request.cancel(url, 'DELETE'),
-  }),
-
-  patch: <D = any, R = any>(url: string, data?: D, config?: CustomAxiosRequestConfig) => ({
-    promise: () => request.patch<D, R>(url, data, config),
-    cancel: () => request.cancel(url, 'PATCH'),
-  }),
-};
+  const cancel = (url: string, method: string = 'GET') => requestCancelManager.clear(url, method);
+  return {
+    request,
+    cancel,
+  };
+}

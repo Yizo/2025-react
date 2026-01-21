@@ -1,9 +1,6 @@
 {
   "globals": {
-    "Button": true,
-    "Divider": true,
     "Layout": true,
-    "Tag": true,
     "message": true
   }
 }

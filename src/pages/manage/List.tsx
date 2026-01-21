@@ -2,7 +2,6 @@ import { Typography } from 'antd';
 import ListCard from './components/ListCard';
 import { produce } from 'immer';
 import type { ListCardItem } from './components/ListCard';
-import useList from './useList';
 
 const { Title, Paragraph } = Typography;
 
@@ -38,8 +37,6 @@ const _list = [
 
 export default function List() {
   const [list, setList] = useState(_list);
-  useList();
-
   async function handleAction(action: 'star' | 'copy' | 'delete', item: ListCardItem) {
     console.log(action, item);
     if (action === 'star') {

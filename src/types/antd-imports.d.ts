@@ -6,17 +6,18 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-  const Button: typeof import('antd').Button;
-  const Card: typeof import('antd').Card;
-  const ConfigProvider: typeof import('antd').ConfigProvider;
-  const Divider: typeof import('antd').Divider;
-  const Input: typeof import('antd').Input;
-  const Layout: typeof import('antd').Layout;
-  const Menu: typeof import('antd').Menu;
-  const Modal: typeof import('antd').Modal;
-  const Space: typeof import('antd').Space;
-  const Statistic: typeof import('antd').Statistic;
-  const Tag: typeof import('antd').Tag;
-  const message: typeof import('antd').message;
-  const theme: typeof import('antd').theme;
+  const Button: typeof import('antd').Button
+  const Card: typeof import('antd').Card
+  const ConfigProvider: typeof import('antd').ConfigProvider
+  const Divider: typeof import('antd').Divider
+  const Form: typeof import('antd').Form
+  const Input: typeof import('antd').Input
+  const Layout: typeof import('antd').Layout
+  const Menu: typeof import('antd').Menu
+  const Modal: typeof import('antd').Modal
+  const Space: typeof import('antd').Space
+  const Statistic: typeof import('antd').Statistic
+  const Tag: typeof import('antd').Tag
+  const message: typeof import('antd').message
+  const theme: typeof import('antd').theme
 }

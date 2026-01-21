@@ -40,13 +40,11 @@ const useSystemStore = create<SystemStore>()(
             }),
           addLoading: () =>
             set((state) => {
-              console.log('addLoading', state.loading);
               state.loading++;
             }),
           removeLoading: () =>
             set((state) => {
               const current = state.loading - 1;
-              console.log('current', current);
               state.loading = Math.max(0, current);
             }),
         }),

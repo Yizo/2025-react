@@ -7,7 +7,6 @@ import ErrorRouter from './ErrorRouter';
 import { useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import AuthRouter from './AuthRouter';
-
 /**
  * 实现动态路由+静态路由+错误路由
  */
