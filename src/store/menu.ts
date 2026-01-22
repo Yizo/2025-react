@@ -1,16 +1,10 @@
-import { create } from 'zustand';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { RouteObject } from 'react-router';
 import type { ReactNode } from 'react';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { devtools } from 'zustand/middleware';
 
-export interface RouteState {
+export interface MenuState {
   routes: RouteObject[];
   menus: MenuItem[];
-  setRoutes: (routes: RouteObject[]) => void;
-  resetRoutes: () => void;
-  getMenus: () => void | Promise<void>;
 }
 
 export type MenuItem = {
@@ -21,6 +15,14 @@ export type MenuItem = {
 };
 
 type PageFiles = Record<string, () => Promise<any>>;
+
+// 异步获取菜单数据
+export const getMenusAsync = createAsyncThunk('menu/getMenus', async () => {
+  const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles;
+  console.log('pages', pages);
+  // 这里可以根据实际需求处理页面文件
+  return [];
+});
 
 function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
   const result: MenuItem[] = [];
@@ -64,43 +66,31 @@ function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
   return result;
 }
 
-async function getMenus() {
-  const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles;
-  console.log('pages', pages);
-  return [];
-}
+const initialState: MenuState = {
+  routes: [],
+  menus: [],
+};
 
-getMenus();
+export const menuSlice = createSlice({
+  name: 'menu',
+  initialState,
+  reducers: {
+    setRoutes: (state, action) => {
+      state.routes = action.payload;
+      state.menus = routesToAntdMenu(action.payload);
+    },
+    resetRoutes: (state) => {
+      state.routes = [];
+      state.menus = [];
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getMenusAsync.fulfilled, (state, action) => {
+      state.routes = action.payload;
+      state.menus = routesToAntdMenu(action.payload);
+    });
+  },
+});
 
-export const useRouteStore = create<RouteState>()(
-  persist(
-    immer(
-      devtools(
-        (set) => ({
-          routes: [],
-          menus: [],
-          setRoutes: (routes) => {
-            set({ routes, menus: routesToAntdMenu(routes) });
-          },
-          resetRoutes: () => set({ routes: [], menus: [] }),
-          getMenus: async () => {
-            const routes = await getMenus();
-            set({ routes });
-          },
-        }),
-        {
-          enabled: true,
-          name: '菜单信息',
-        }
-      )
-    ),
-    {
-      name: 'menu-storage',
-      storage: createJSONStorage(() => sessionStorage),
-    }
-  )
-);
-
-export const useMenus = () => useRouteStore((s) => s.menus);
-
-export const useDynamicRoutes = () => useRouteStore((s) => s.routes);
+export const { setRoutes, resetRoutes } = menuSlice.actions;
+export default menuSlice.reducer;

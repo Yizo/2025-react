@@ -10,6 +10,7 @@ declare global {
   const Card: typeof import('antd').Card
   const ConfigProvider: typeof import('antd').ConfigProvider
   const Divider: typeof import('antd').Divider
+  const Dropdown: typeof import('antd').Dropdown
   const Form: typeof import('antd').Form
   const Input: typeof import('antd').Input
   const Layout: typeof import('antd').Layout

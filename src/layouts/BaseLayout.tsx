@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useMatches } from 'react-router';
 import { Menu } from 'antd';
-import { useMenus } from '@/store/menu';
+import { useAppSelector } from '@/store';
 import type { MenuItem } from '@/store/menu';
 import StaticLayout from './StaticLayout';
 
@@ -10,7 +10,7 @@ export default function BaseLayout() {
   const navigate = useNavigate();
   const matches = useMatches();
   const [current, setCurrent] = useState('');
-  const menus = useMenus();
+  const menus = useAppSelector((state) => state.menu.menus);
 
   //  根据地址栏查找当前激活菜单
   function findCurrentMenu(menus: MenuItem[], path: string) {

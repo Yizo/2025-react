@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import StaticLayout from '@/layouts/StaticLayout';
-import { useToken, useUserInfo } from '@/store/user';
+import { useAppSelector } from '@/store';
 
 export default function AuthRouter() {
   const navigate = useNavigate();
   const location = useLocation();
   const { pathname } = location;
-  const token = useToken();
-  const userInfo = useUserInfo();
+  const token = useAppSelector((state) => state.user.token);
+  const userInfo = useAppSelector((state) => state.user.userInfo);
 
   const whiteList = ['/login', '/register', '/home'];
 

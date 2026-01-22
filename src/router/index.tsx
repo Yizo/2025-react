@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import type { RouteObject } from 'react-router';
-// import { useDynamicRoutes } from '@/store/menu'
+import { useAppSelector } from '@/store';
 import useStaticRoutes from './UserRouter';
 import StaticRouter from './StaticRouter';
 import ErrorRouter from './ErrorRouter';
@@ -11,8 +11,9 @@ import AuthRouter from './AuthRouter';
  * 实现动态路由+静态路由+错误路由
  */
 export default function App() {
-  // const dynamicRoutes = useDynamicRoutes()
-  const dynamicRoutes = useStaticRoutes;
+  const dynamicRoutesFromStore = useAppSelector((state) => state.menu.routes);
+  const dynamicRoutes =
+    dynamicRoutesFromStore.length > 0 ? dynamicRoutesFromStore : useStaticRoutes;
 
   // 使用 useMemo 缓存路由配置，避免每次渲染都重新创建
   const allRoutes = useMemo((): RouteObject[] => {

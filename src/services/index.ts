@@ -3,12 +3,18 @@ import { message } from 'antd';
 import type { CustomAxiosRequestConfig, ApiResponse } from '@/utils/axios/types';
 import type { AxiosRequestHeaders } from 'axios';
 import { AxiosError } from 'axios';
+import store from '@/store';
 
 const config: CustomAxiosRequestConfig = {
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
   headers: {} as AxiosRequestHeaders,
   showErrorMessage: true,
   onBeforeRequest: (config) => {
+    const state = store.getState();
+    const token = state.user.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   onBeforeResponse: (response): ApiResponse => {

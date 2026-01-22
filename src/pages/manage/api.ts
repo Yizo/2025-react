@@ -1,4 +1,4 @@
-import { requestManual } from '@/services';
+import { request } from '@/services';
 
 export interface ListItem {
   id: string | number;
@@ -12,5 +12,5 @@ export interface ListResponse {
 
 export function getList() {
   // 根据你的实际后端响应格式选择对应的实现方式
-  return requestManual.get<ListResponse>('/v1/api/list');
+  return request.get<ListResponse>('/v1/api/list');
 }

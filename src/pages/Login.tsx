@@ -1,7 +1,8 @@
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 import { request } from '@/services';
 import { useRequest } from 'ahooks';
-import useUserStore from '@/store/user';
+import { useAppDispatch } from '@/store';
+import { setUser } from '@/store/user';
 import { useNavigate } from 'react-router';
 import { HOME_PATH } from '@/router/constant';
 
@@ -13,7 +14,7 @@ const rules = {
 };
 
 function useLogin() {
-  const setUserInfo = useUserStore((s) => s.set);
+  const dispatch = useAppDispatch();
   const { runAsync, loading } = useRequest(
     async (values: any) => {
       const result = await request.post('/v1/auth/login', values);
@@ -29,12 +30,14 @@ function useLogin() {
     console.log('result', result);
     const { data, message } = result;
     console.log('登录成功:', data, message);
-    setUserInfo({
-      token: data.token,
-      userInfo: {
-        name: data.username,
-      },
-    });
+    dispatch(
+      setUser({
+        token: data.token,
+        userInfo: {
+          name: data.username,
+        },
+      })
+    );
   }
 
   return { onLogin, loading };

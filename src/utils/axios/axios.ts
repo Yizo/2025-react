@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError, AxiosResponse, AxiosRequestHeaders } from 'axios';
 import { message } from 'antd';
-import useUserStore from '@/store/user';
-import useSystemStore from '@/store/system';
+import store from '@/store';
+import { addLoading, removeLoading } from '@/store/system';
 import { requestCancelManager } from './cancelManager';
 import type { CustomAxiosRequestConfig, ApiResponse } from './types';
 
@@ -10,16 +10,16 @@ let loadingInstance: ReturnType<typeof message.loading> | null = null;
 
 function LoadingManager() {
   function openLoading(text = '加载中...') {
-    const currentLoading = useSystemStore.getState().loading;
+    const currentLoading = store.getState().system.loading;
     if (currentLoading === 0) {
-      loadingInstance = message.loading(text, 0);
+      loadingInstance = message.open({ content: text, type: 'loading', duration: 0 });
     }
-    useSystemStore.getState().addLoading();
+    store.dispatch(addLoading());
   }
 
   function destroyLoading() {
-    useSystemStore.getState().removeLoading();
-    const afterRemove = useSystemStore.getState().loading;
+    store.dispatch(removeLoading());
+    const afterRemove = store.getState().system.loading;
     if (afterRemove === 0) {
       loadingInstance?.();
       loadingInstance = null;
@@ -38,20 +38,13 @@ const { openLoading, destroyLoading } = LoadingManager();
  * 请求拦截器
  */
 const requestInterceptor = (config: CustomAxiosRequestConfig) => {
-  // 获取 token 并添加到 header
-  const token = useUserStore.getState().token;
   openLoading();
   if (!config.headers) {
     config.headers = {} as AxiosRequestHeaders;
   }
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
   if (config.onBeforeRequest) {
     return config.onBeforeRequest(config);
   }
-
   return config;
 };
 
@@ -95,7 +88,6 @@ const errorInterceptor = (error: AxiosError) => {
   console.log('[响应错误]', error);
   destroyLoading();
   const config = error.config as CustomAxiosRequestConfig;
-
   // 清除该请求的 cancel token
   if (config.url) {
     const method = config.method || 'GET';
@@ -107,7 +99,7 @@ const errorInterceptor = (error: AxiosError) => {
 
   const showErrorMessage = (msg: string) => {
     if (config?.showErrorMessage) {
-      message.error(msg);
+      message.open({ content: msg, type: 'error' });
     }
   };
 
