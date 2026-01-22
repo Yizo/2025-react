@@ -3,7 +3,7 @@ import { request } from '@/services';
 import { useRequest } from 'ahooks';
 import useUserStore from '@/store/user';
 import { useNavigate } from 'react-router';
-import { HOME_PATH } from '@/router/routes';
+import { HOME_PATH } from '@/router/constant';
 
 const { Item, useForm } = Form;
 
