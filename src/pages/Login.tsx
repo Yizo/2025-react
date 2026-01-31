@@ -1,10 +1,7 @@
-import { Form, Input, Button, message } from 'antd';
-import { request } from '@/services';
-import { useRequest } from 'ahooks';
-import { useAppDispatch } from '@/store';
-import { setUser } from '@/store/user';
+import { Form, Input, Button, App } from 'antd';
+import { useLogin } from '@/store/user';
 import { useNavigate } from 'react-router';
-import { HOME_PATH } from '@/router/constant';
+import { MANAGE_PATH } from '@/router/constant';
 
 const { Item, useForm } = Form;
 
@@ -13,47 +10,20 @@ const rules = {
   password: [{ required: true, message: '请输入密码' }],
 };
 
-function useLogin() {
-  const dispatch = useAppDispatch();
-  const { runAsync, loading } = useRequest(
-    async (values: any) => {
-      const result = await request.post('/v1/auth/login', values);
-      return result;
-    },
-    {
-      manual: true,
-    }
-  );
-
-  async function onLogin(values: any) {
-    const result = await runAsync(values);
-    console.log('result', result);
-    const { data, message } = result;
-    console.log('登录成功:', data, message);
-    dispatch(
-      setUser({
-        token: data.token,
-        userInfo: {
-          name: data.username,
-        },
-      })
-    );
-  }
-
-  return { onLogin, loading };
-}
 
 export default function Login() {
   const [form] = useForm();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const { onLogin, loading: _loading } = useLogin();
 
   async function onFinish(values: any) {
     try {
+      if(_loading) return;
       await onLogin(values);
       message.success('登录成功');
       setTimeout(() => {
-        navigate(HOME_PATH);
+        navigate(MANAGE_PATH);
       }, 1000);
     } catch (err) {
       console.log('登录失败:', err);
@@ -67,7 +37,7 @@ export default function Login() {
   return (
     <div className="flex justify-center" style={{ height: '100vh' }}>
       <Form form={form} onFinish={onFinish} style={{ paddingTop: '20vh', width: '300px' }}>
-        <Item name="username" label="Username" initialValue={'张三'} rules={rules.username}>
+        <Item name="username" label="Username" initialValue={'admin'} rules={rules.username}>
           <Input />
         </Item>
         <Item name="password" label="Password" initialValue={'123456'} rules={rules.password}>

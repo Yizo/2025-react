@@ -1,7 +1,7 @@
 import { Layout } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { useAppSelector, useAppDispatch } from '@/store';
-import { logout } from '@/store/user';
+import { useAppSelector } from '@/store';
+import { useLogout } from '@/store/user';
 import { useNavigate } from 'react-router';
 import { LOGIN_PATH } from '@/router/constant';
 
@@ -16,15 +16,17 @@ export default function BaseHeader() {
   const textColor = 'white';
   const userInfo = useAppSelector((state) => state.user.userInfo);
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const { onLogout, loading: _loading } = useLogout();
+
   function handleLogin() {
     if (userInfo) return;
     navigate(LOGIN_PATH);
   }
 
-  const onClick = ({ key }: { key: string }) => {
+  async function onClick({ key }: { key: string }) {
+    if(_loading) return;
     if (key === 'logout') {
-      dispatch(logout());
+      await onLogout();
       navigate(LOGIN_PATH);
     }
   };
