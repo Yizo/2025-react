@@ -16,9 +16,11 @@ declare global {
   const Layout: typeof import('antd').Layout
   const Menu: typeof import('antd').Menu
   const Modal: typeof import('antd').Modal
+  const Popover: typeof import('antd').Popover
   const Space: typeof import('antd').Space
   const Statistic: typeof import('antd').Statistic
   const Tag: typeof import('antd').Tag
+  const Typography: typeof import('antd').Typography
   const message: typeof import('antd').message
   const theme: typeof import('antd').theme
 }

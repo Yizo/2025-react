@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import type { RouteObject } from 'react-router';
 import { useAppSelector } from '@/store';
 import useStaticRoutes from './UserRouter';
+import adminRoutes from './adminRoter';
 import StaticRouter from './StaticRouter';
 import ErrorRouter from './ErrorRouter';
 import { useMemo } from 'react';
@@ -12,16 +13,18 @@ import AuthRouter from './AuthRouter';
  */
 export default function App() {
   const dynamicRoutesFromStore = useAppSelector((state) => state.menu.routes);
-  const dynamicRoutes =
-    dynamicRoutesFromStore.length > 0 ? dynamicRoutesFromStore : useStaticRoutes;
+  const dynamicRoutes = useMemo(() => {
+    return dynamicRoutesFromStore.length > 0
+      ? dynamicRoutesFromStore
+      : [...useStaticRoutes, ...adminRoutes];
+  }, [dynamicRoutesFromStore]);
 
-  // 使用 useMemo 缓存路由配置，避免每次渲染都重新创建
   const allRoutes = useMemo((): RouteObject[] => {
     const router = [
       {
         element: <AuthRouter />,
         errorElement: <ErrorBoundary />,
-        children: dynamicRoutes,
+        children: [...dynamicRoutes],
       },
     ];
 
@@ -30,9 +33,6 @@ export default function App() {
 
   const router = useMemo(() => {
     const base = import.meta.env.VITE_BASE;
-    console.log('base', base);
-    console.log('allRoutes', allRoutes);
-
     return createBrowserRouter(allRoutes, {
       basename: base,
     });

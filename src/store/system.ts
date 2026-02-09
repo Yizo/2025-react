@@ -13,10 +13,12 @@ export interface SystemState {
   loading: number;
 }
 
-const initialState: SystemState = {
-  systemName: 'demo',
-  theme: 'light',
-  loading: 0,
+const initialState = (): SystemState => {
+  return {
+    systemName: 'demo',
+    theme: 'light',
+    loading: 0,
+  };
 };
 
 export const systemSlice = createSlice({

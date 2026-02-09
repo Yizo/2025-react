@@ -24,16 +24,31 @@ function LoadingScreen() {
 function AppContent() {
   const systemTheme = useAppSelector((state) => state.system.theme);
 
-  return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={{
+  const appTheme = useMemo(() => {
+    const base = {
+      algorithm: systemTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    };
+    if (systemTheme === 'dark') {
+      return Object.assign(base, {
         token: {
-          colorPrimary: import.meta.env.VITE_THEME,
+          colorPrimary: '#fa8c16',
+          colorTextBase: '#fdd5a6d9',
         },
-        algorithm: systemTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
+      });
+    }
+    return Object.assign(base, {
+      token: {
+        colorPrimary: import.meta.env.VITE_THEME,
+      },
+    });
+  }, [systemTheme]);
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', systemTheme);
+  }, [systemTheme]);
+
+  return (
+    <ConfigProvider locale={zhCN} theme={appTheme}>
       <App>
         <Router />
       </App>

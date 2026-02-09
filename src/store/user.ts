@@ -39,9 +39,8 @@ export const userSlice = createSlice({
   },
 });
 
-
 export function useLogin() {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { runAsync, loading } = useRequest(
     async (values: any) => {
       const result = await request.post('/api/auth/login', values);

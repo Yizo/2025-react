@@ -1,11 +1,7 @@
 {
   "globals": {
-    "Button": true,
-    "Divider": true,
-    "Dropdown": true,
     "Layout": true,
-    "Space": true,
-    "Tag": true,
-    "message": true
+    "Menu": true,
+    "Popover": true
   }
 }
