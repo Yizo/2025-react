@@ -1,9 +1,16 @@
-import { Layout } from 'antd';
+import { Layout, theme } from 'antd';
 import UserProfileDropdown from '@/components/UserProfileDropdown';
 
 export default function BaseHeader() {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   return (
-    <Layout.Header className="flex items-center justify-between">
+    <Layout.Header
+      style={{ background: colorBgContainer }}
+      className="flex items-center justify-between"
+    >
       <div className="text-2xl font-bold">logo</div>
       <UserProfileDropdown />
     </Layout.Header>

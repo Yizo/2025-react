@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { ConfigProvider, App, theme } from 'antd';
+import { ConfigProvider, App, theme, type ThemeConfig } from 'antd';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { Provider as ReduxProvider } from 'react-redux';
@@ -23,24 +23,27 @@ function LoadingScreen() {
 
 function AppContent() {
   const systemTheme = useAppSelector((state) => state.system.theme);
-
   const appTheme = useMemo(() => {
-    const base = {
+    const base: ThemeConfig = {
       algorithm: systemTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    };
-    if (systemTheme === 'dark') {
-      return Object.assign(base, {
-        token: {
-          colorPrimary: '#fa8c16',
-          colorTextBase: '#fdd5a6d9',
-        },
-      });
-    }
-    return Object.assign(base, {
       token: {
-        colorPrimary: import.meta.env.VITE_THEME,
+        // colorPrimary: 'var(--color-primary)',
+        // colorTextBase: 'var(--color-primary-content)',
+        // colorPrimaryText: 'var(--color-primary-content)',
+        colorPrimary: '#fa8c16',
+        colorTextBase: '#fdd5a6d9',
+        colorPrimaryText: '#fdd5a6d9',
       },
-    });
+      components: {
+        Layout: {},
+        Menu: {
+          darkItemBg: 'var(--color-base-100)',
+          darkSubMenuItemBg: 'var(--color-base-200)',
+        },
+      },
+    };
+
+    return base;
   }, [systemTheme]);
 
   useEffect(() => {

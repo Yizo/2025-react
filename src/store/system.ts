@@ -16,7 +16,7 @@ export interface SystemState {
 const initialState = (): SystemState => {
   return {
     systemName: 'demo',
-    theme: 'light',
+    theme: 'dark',
     loading: 0,
   };
 };

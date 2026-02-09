@@ -8,7 +8,7 @@ const { Content } = Layout;
 
 const ManageLayout = () => {
   return (
-    <Layout className="flex" style={{ height: '100vh' }}>
+    <Layout className="flex" style={{ minHeight: '100vh' }}>
       <BaseHeader />
       <Content className="mx-6 mt-6 flex gap-4 ml-auto mr-auto" style={{ minWidth: '900px' }}>
         <MangeLayoutLeft />

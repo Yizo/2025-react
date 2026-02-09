@@ -1,7 +1,9 @@
 {
   "globals": {
+    "Button": true,
     "Layout": true,
     "Menu": true,
-    "Popover": true
+    "Popover": true,
+    "theme": true
   }
 }

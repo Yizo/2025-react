@@ -28,8 +28,37 @@ const settingItems: MenuProps['items'] = [
   },
 ];
 
+function getSettingItems(isLogin = false): MenuProps['items'] {
+  const settingItems: MenuProps['items'] = [
+    {
+      label: '亮色模式',
+      key: 'light',
+      icon: <SunOutlined />,
+    },
+    {
+      label: '暗色模式',
+      key: 'dark',
+      icon: <MoonOutlined />,
+    },
+  ];
+
+  if (isLogin) {
+    settingItems.concat([
+      {
+        type: 'divider',
+      },
+      {
+        label: '退出登录',
+        key: 'logout',
+        icon: <LogoutOutlined />,
+      },
+    ]);
+  }
+
+  return settingItems;
+}
+
 export default function UserProfileDropdown() {
-  const textColor = 'white';
   const userInfo = useAppSelector((state) => state.user.userInfo);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -56,8 +85,13 @@ export default function UserProfileDropdown() {
 
   return (
     <Popover
-      className="border-0"
-      content={<Menu className="border-0" items={settingItems} onClick={onSettingClick} />}
+      content={
+        <Menu
+          style={{ borderRightWidth: 0 }}
+          items={getSettingItems(!!userInfo)}
+          onClick={onSettingClick}
+        />
+      }
     >
       <div className="flex items-center gap-2">
         <div className="cursor-pointer">

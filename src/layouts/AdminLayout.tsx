@@ -8,6 +8,8 @@ import {
   ApartmentOutlined,
   BookOutlined,
   FileTextOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from '@ant-design/icons';
 import UserProfileDropdown from '@/components/UserProfileDropdown';
 import { useAppSelector } from '@/store';
@@ -49,46 +51,58 @@ const sidebarItems = [
 ];
 
 export default function AdminLayout() {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
   const systemTheme = useAppSelector((state) => state.system.theme);
   const menus = useAppSelector((state) => state.menu.adminMenus);
+
   const navigate = useNavigate();
 
-  const { currentKey, openKeys } = useActiveMenu(menus);
+  const { currentKey, openKeys, handleOpenChange } = useActiveMenu(menus);
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Layout.Header className="flex items-center justify-between">
-        <div className="text-2xl font-bold">logo</div>
-        <UserProfileDropdown />
-      </Layout.Header>
-      <Layout>
-        <Layout.Sider
-          collapsible
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-          width={240}
+      <Layout.Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+        width={180}
+        theme={systemTheme}
+        trigger={null}
+      >
+        <Menu
+          mode="inline"
+          items={menus as ItemType[]}
+          openKeys={openKeys}
+          onOpenChange={handleOpenChange}
+          onClick={({ key }) => navigate(key)}
+          className="border-r-0 h-full"
           theme={systemTheme}
+          selectedKeys={currentKey ? [currentKey] : []}
+          defaultSelectedKeys={currentKey ? [currentKey] : []}
+        />
+      </Layout.Sider>
+      <Layout>
+        <Layout.Header
+          style={{ background: colorBgContainer }}
+          className="flex items-center justify-between px-4!"
         >
-          <Menu
-            mode="inline"
-            items={menus as ItemType[]}
-            openKeys={openKeys}
-            onClick={({ key }) => navigate(key)}
-            className="border-r-0"
-            theme={systemTheme}
-            selectedKeys={currentKey ? [currentKey] : []}
-            defaultSelectedKeys={currentKey ? [currentKey] : []}
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: '16px',
+            }}
           />
-        </Layout.Sider>
-
-        {/* Content */}
-        <Layout>
-          <Layout.Content>
-            <Outlet />
-          </Layout.Content>
-          <BaseFooter />
-        </Layout>
+          <UserProfileDropdown />
+        </Layout.Header>
+        <Layout.Content>
+          <Outlet />
+        </Layout.Content>
+        <BaseFooter />
       </Layout>
     </Layout>
   );

@@ -21,6 +21,8 @@ body[data-theme='light'] {
   /* 中性色: 非饱和部分的背景、边框、分割线等中性元素 */
   --color-neutral: oklch(14% 0.005 285.823);
   --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-primary: #6366f1;
+  --color-primary-content: #fff;
 }
 
 /* 暗色主题 */
@@ -28,11 +30,14 @@ body[data-theme='dark'] {
   --color-base-100: oklch(25.33% 0.016 252.42);
   --color-base-200: oklch(23.26% 0.014 253.1);
   --color-base-300: oklch(21.15% 0.012 254.09);
-  --color-base-content: oklch(97.807% 0.029 256.847);
+  /* --color-base-content: oklch(97.807% 0.029 256.847); */
+  --color-base-content: #fdd5a6d9;
   --color-accent: oklch(77% 0.152 181.912);
   --color-accent-content: oklch(38% 0.063 188.416);
   --color-neutral: oklch(14% 0.005 285.823);
   --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-primary: #fa8c16;
+  --color-primary-content: #fdd5a6d9;
 }
 
 /* 深色主题2 */

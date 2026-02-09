@@ -6,9 +6,8 @@ export interface MenuItem {
   key: string;
   label: string | ReactNode;
   title: string | ReactNode;
-  index?: boolean; // 是否为默认路由
+  index: 0 | 1; // 是否为默认路由
   icon?: ReactNode;
-  type: 'item' | 'group' | 'divider' | 'submenu';
   children?: MenuItem[];
 }
 /**
@@ -30,8 +29,7 @@ export function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
       key: fullPath,
       label: route.handle?.title ?? '',
       title: route.handle?.title ?? '',
-      index: route.index ?? false,
-      type: route.handle?.type ?? 'item',
+      index: route.index ? 1 : 0,
     };
 
     // 如果路由有标签，则添加到菜单中，否则不添加
@@ -48,7 +46,6 @@ export function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
 
     const children = (route.children || []).filter((item) => item.handle && item.handle.title);
     if (children.length) {
-      menuItem.type = 'submenu';
       for (let i = 0; i < children.length; i++) {
         handle(children[i], fullPath, menuItem.label ? menuItem : null);
       }
@@ -88,7 +85,7 @@ export function findActiveMenu(menus: MenuItem[], pathname: string): MenuItem | 
   for (const menu of menus) {
     if (menu.key && matchMenuPath(menu.key, pathname)) {
       if (menu.children && menu.children.length > 0) {
-        const indexChild = menu.children.find((c) => c.index === true);
+        const indexChild = menu.children.find((c) => c.index === 1);
         if (indexChild) {
           // 递归下去，处理 index 子节点
           return findActiveMenu(menu.children, pathname) || indexChild;
