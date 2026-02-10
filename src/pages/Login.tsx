@@ -90,7 +90,7 @@ export default function Login() {
 
             {/* 按钮区域 */}
             <Item className="mb-0">
-              <Space direction="vertical" className="w-full">
+              <Space orientation="vertical" className="w-full">
                 <Button
                   loading={_loading}
                   type="primary"

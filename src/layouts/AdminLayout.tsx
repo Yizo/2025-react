@@ -87,7 +87,7 @@ export default function AdminLayout() {
       <Layout>
         <Layout.Header
           style={{ background: colorBgContainer }}
-          className="flex items-center justify-between px-4!"
+          className="flex items-center justify-between pl-4! pr-8!"
         >
           <Button
             type="text"

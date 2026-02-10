@@ -59,7 +59,6 @@ function useRegister() {
 
 export default function Register() {
   const [form] = useForm();
-  const themeColor = import.meta.env.VITE_THEME;
   const { runAsync, loading } = useRegister();
   const navigate = useNavigate();
 
@@ -153,7 +152,7 @@ export default function Register() {
 
             {/* 按钮区域 */}
             <Item className="mb-0">
-              <Space direction="vertical" className="w-full">
+              <Space orientation="vertical" className="w-full">
                 <Button
                   type="primary"
                   htmlType="submit"

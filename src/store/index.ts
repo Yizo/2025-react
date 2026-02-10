@@ -14,7 +14,7 @@ import {
 import sessionStorage from 'redux-persist/lib/storage/session';
 import menuReducer from './menu';
 import userReducer from './user';
-import systemReducer from './system';
+import { reducer as systemReducer } from './system';
 
 const rootReducer = combineReducers({
   menu: menuReducer,

@@ -13,8 +13,7 @@ export default function useCurrentPath(menus: MenuItem[]) {
   const [openKeys, setOpenKeys] = useState<string[]>([]);
 
   const activePathKeys = useMemo(() => {
-    const keys = matches.map((match) => match.pathname).filter((key) => key !== '/');
-    return keys;
+    return matches.map((match) => match.pathname).filter((key) => key !== '/');
   }, [matches]);
 
   const handleOpenChange = (keys: string[]) => {

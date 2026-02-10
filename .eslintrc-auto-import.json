@@ -4,6 +4,7 @@
     "Layout": true,
     "Menu": true,
     "Popover": true,
+    "message": true,
     "theme": true
   }
 }

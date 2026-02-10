@@ -26,6 +26,10 @@ const staticRoutes: RouteObject[] = [
     path: '/register',
     element: <LazyImport lazy={lazy(() => import('@/pages/Register'))} />,
   },
+  {
+    path: '/color',
+    element: <LazyImport lazy={lazy(() => import('@/pages/Color'))} />,
+  },
 ];
 
 export default staticRoutes;
