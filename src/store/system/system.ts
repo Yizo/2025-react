@@ -1,4 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { persistReducer } from 'redux-persist';
+import sessionStorage from 'redux-persist/lib/storage/session';
 
 const SystemMap = {
   demo: 'demo',
@@ -62,4 +64,14 @@ export const {
   toggleTheme,
 } = systemSlice.actions;
 
-export default systemSlice.reducer;
+// 为system模块配置持久化
+const systemPersistConfig = {
+  key: import.meta.env.VITE_STORAGE_KEY + '_system',
+  storage: sessionStorage,
+  blacklist: ['loading'], // 排除loading字段
+};
+
+// 包装reducer
+const persistedSystemReducer = persistReducer(systemPersistConfig, systemSlice.reducer);
+
+export default persistedSystemReducer;

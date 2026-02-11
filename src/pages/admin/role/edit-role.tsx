@@ -95,7 +95,6 @@ export function RoleManagement({ success }: { success: () => void }) {
 
   // 新增角色
   function onAddRole(record: any) {
-    debugger;
     if (loading) return;
     createRole(record).then(() => {
       message.success('新增成功');

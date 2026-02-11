@@ -18,10 +18,12 @@ declare global {
   const cancel: typeof import('../services/index').cancel
   const findActiveMenu: typeof import('../utils/menu.util').findActiveMenu
   const formatDate: typeof import('../utils/date.util').formatDate
+  const getAntdThemeTokens: typeof import('../store/index').getAntdThemeTokens
   const persistor: typeof import('../store/index').persistor
   const request: typeof import('../services/index').request
   const router: typeof import('../router/index').default
   const routesToAntdMenu: typeof import('../utils/menu.util').routesToAntdMenu
+  const setThemeVariables: typeof import('../store/index').setThemeVariables
   const store: typeof import('../store/index').default
   const tableConfig: typeof import('../config/antd/table').tableConfig
   const useActiveMenu: typeof import('../hooks/index').useActiveMenu

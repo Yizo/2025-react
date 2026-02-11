@@ -1,4 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { persistReducer } from 'redux-persist';
+import sessionStorage from 'redux-persist/lib/storage/session';
 import { useRequest } from 'ahooks';
 import { useDispatch } from 'react-redux';
 import { request } from '@/services';
@@ -94,4 +96,12 @@ export function useLogout() {
 }
 
 export const { setUserInfo, setToken, setUser, clearUser, logout } = userSlice.actions;
-export default userSlice.reducer;
+
+const userPersistConfig = {
+  key: import.meta.env.VITE_STORAGE_KEY + '_user',
+  storage: sessionStorage,
+};
+
+const persistedUserReducer = persistReducer(userPersistConfig, userSlice.reducer);
+
+export default persistedUserReducer;

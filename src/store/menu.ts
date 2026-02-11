@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { persistReducer, createTransform } from 'redux-persist';
+import sessionStorage from 'redux-persist/lib/storage/session';
 import type { RouteObject } from 'react-router';
 import { routesToAntdMenu } from '@/utils/menu.util';
 import adminRoutes from '@/router/adminRoter';
@@ -57,4 +59,13 @@ export const menuSlice = createSlice({
 });
 
 export const { setUserRoutes, setAdminRoutes, resetRoutes } = menuSlice.actions;
-export default menuSlice.reducer;
+
+// 为menu模块配置持久化
+const menuPersistConfig = {
+  key: import.meta.env.VITE_STORAGE_KEY + '_menu',
+  storage: sessionStorage,
+};
+
+const persistedMenuReducer = persistReducer(menuPersistConfig, menuSlice.reducer);
+
+export default persistedMenuReducer;

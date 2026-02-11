@@ -1,17 +1,7 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import type { TypedUseSelectorHook } from 'react-redux';
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist';
-import sessionStorage from 'redux-persist/lib/storage/session';
+import { persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import menuReducer from './menu';
 import userReducer from './user';
 import { reducer as systemReducer } from './system';
@@ -22,16 +12,8 @@ const rootReducer = combineReducers({
   system: systemReducer,
 });
 
-const persistConfig = {
-  key: 'root',
-  version: 1,
-  storage: sessionStorage,
-};
-
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
 const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   devTools: true,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -48,5 +30,7 @@ export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const persistor = persistStore(store);
+
+export { getAntdThemeTokens, setThemeVariables } from './system/theme';
 
 export default store;
