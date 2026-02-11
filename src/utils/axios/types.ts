@@ -1,11 +1,10 @@
-import type { InternalAxiosRequestConfig } from 'axios';
-import type { AxiosResponse } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import type { ReactNode } from 'react';
 
 /**
  * 自定义 Axios 请求配置
  */
-export interface CustomAxiosRequestConfig<T = any> extends InternalAxiosRequestConfig<T> {
+export interface CustomAxiosRequestConfig<T = any> extends AxiosRequestConfig<T> {
   // 是否显示错误信息
   showErrorMessage?: boolean;
   // 加载文案
@@ -14,6 +13,7 @@ export interface CustomAxiosRequestConfig<T = any> extends InternalAxiosRequestC
   onBeforeRequest?: (_config: CustomAxiosRequestConfig<T>) => CustomAxiosRequestConfig<T>;
   // 响应前拦截 - 允许用户对响应进行最终处理，返回指定类型的响应数据
   onBeforeResponse?: (_response: AxiosResponse) => ApiResponse<T>;
+  onError?: (_error: AxiosError) => void;
 }
 
 export interface ApiResponse<T = any> {

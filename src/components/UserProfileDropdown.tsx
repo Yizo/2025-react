@@ -43,7 +43,7 @@ function getSettingItems(isLogin = false): MenuProps['items'] {
   ];
 
   if (isLogin) {
-    settingItems.concat([
+    settingItems.push(
       {
         type: 'divider',
       },
@@ -51,8 +51,8 @@ function getSettingItems(isLogin = false): MenuProps['items'] {
         label: '退出登录',
         key: 'logout',
         icon: <LogoutOutlined />,
-      },
-    ]);
+      }
+    );
   }
 
   return settingItems;

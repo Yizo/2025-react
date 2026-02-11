@@ -29,7 +29,7 @@ const adminRoutes: RouteObject[] = [
         handle: {
           title: '角色管理',
         },
-        element: <LazyImport lazy={lazy(() => import('@/pages/admin/RoleManagement'))} />,
+        element: <LazyImport lazy={lazy(() => import('@/pages/admin/role/list'))} />,
       },
       {
         path: 'department',

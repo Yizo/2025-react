@@ -1,10 +1,31 @@
 {
   "globals": {
-    "Button": true,
-    "Layout": true,
-    "Menu": true,
-    "Popover": true,
-    "message": true,
-    "theme": true
+    "ADMIN_PATH": true,
+    "ApiResponse": true,
+    "AppDispatch": true,
+    "CustomAxiosRequestConfig": true,
+    "ErrorBoundary": true,
+    "HOME_PATH": true,
+    "LOGIN_PATH": true,
+    "LazyImport": true,
+    "Loading": true,
+    "MANAGE_PATH": true,
+    "MenuItem": true,
+    "NotFound": true,
+    "RootState": true,
+    "UserProfileDropdown": true,
+    "cancel": true,
+    "findActiveMenu": true,
+    "formatDate": true,
+    "persistor": true,
+    "request": true,
+    "router": true,
+    "routesToAntdMenu": true,
+    "store": true,
+    "tableConfig": true,
+    "useActiveMenu": true,
+    "useAppDispatch": true,
+    "useAppSelector": true,
+    "useRequest": true
   }
 }

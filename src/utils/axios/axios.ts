@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosInstance, AxiosError, AxiosResponse, AxiosRequestHeaders } from 'axios';
+import type { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { message } from 'antd';
 import store from '@/store';
 import { addLoading, removeLoading } from '@/store/system';
@@ -37,13 +37,14 @@ const { openLoading, destroyLoading } = LoadingManager();
 /**
  * 请求拦截器
  */
-const requestInterceptor = (config: CustomAxiosRequestConfig) => {
+const requestInterceptor = (
+  config: InternalAxiosRequestConfig<any>
+): InternalAxiosRequestConfig<any> => {
   openLoading();
-  if (!config.headers) {
-    config.headers = {} as AxiosRequestHeaders;
-  }
-  if (config.onBeforeRequest) {
-    return config.onBeforeRequest(config);
+  const customConfig = config as CustomAxiosRequestConfig;
+
+  if (customConfig.onBeforeRequest) {
+    return customConfig.onBeforeRequest(customConfig) as InternalAxiosRequestConfig<any>;
   }
   return config;
 };
@@ -103,27 +104,34 @@ const errorInterceptor = (error: AxiosError) => {
     }
   };
 
-  // 如果是取消请求，不显示错误提示
-  if (error.code === 'ERR_CANCELED') {
-    return Promise.reject(error);
-  }
+  const handleError = () => {
+    if (error.code === 'ERR_CANCELED') {
+      // 如果是取消请求，不显示错误提示
+      return Promise.reject(error);
+    }
 
-  // 有响应（HTTP 状态码异常）
-  if (error.response) {
+    // 有响应（HTTP 状态码异常）
+    if (error.response) {
+      showErrorMessage(errorMessage);
+      return Promise.reject(error);
+    }
+
+    // 请求发出了，但没收到响应: 网络错误 / 超时
+    if (error.request) {
+      showErrorMessage('网络错误/超时，请稍后再试');
+      return Promise.reject(error);
+    }
+
     showErrorMessage(errorMessage);
+
+    // 其他（配置错误、拦截器异常）
     return Promise.reject(error);
+  };
+
+  if (config?.onError) {
+    config.onError(error);
   }
-
-  // 请求发出了，但没收到响应: 网络错误 / 超时
-  if (error.request) {
-    showErrorMessage('网络错误/超时，请稍后再试');
-    return Promise.reject(error);
-  }
-
-  showErrorMessage(errorMessage);
-
-  // 其他（配置错误、拦截器异常）
-  return Promise.reject(error);
+  return handleError();
 };
 
 /**
@@ -150,10 +158,8 @@ export function useRequest(config: CustomAxiosRequestConfig) {
   const axiosInstance = createRequestInstance(config);
 
   const request = {
-    get: <T = any, R = ApiResponse<T>, D = any>(
-      url: string,
-      config?: CustomAxiosRequestConfig<D>
-    ) => axiosInstance.get<T, R, D>(url, config),
+    get: <T = any, R = ApiResponse<T>>(url: string, config?: CustomAxiosRequestConfig) =>
+      axiosInstance.get<T, R>(url, config),
     post: <T = any, R = ApiResponse<T>, D = any>(
       url: string,
       data?: D,

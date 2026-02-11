@@ -4,6 +4,7 @@ import type { CustomAxiosRequestConfig, ApiResponse } from '@/utils/axios/types'
 import type { AxiosRequestHeaders } from 'axios';
 import { AxiosError } from 'axios';
 import store from '@/store';
+import { clearUser } from '@/store/user';
 
 const config: CustomAxiosRequestConfig = {
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
@@ -13,6 +14,9 @@ const config: CustomAxiosRequestConfig = {
     const state = store.getState();
     const token = state.user.token;
     if (token) {
+      if (!config.headers) {
+        config.headers = {} as AxiosRequestHeaders;
+      }
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -22,9 +26,7 @@ const config: CustomAxiosRequestConfig = {
     const { data } = response;
     if (data?.code === 0) {
       return {
-        code: data.code,
-        message: data.message,
-        data: data.data,
+        ...data,
         axiosResponse: response,
       };
     }
@@ -36,6 +38,12 @@ const config: CustomAxiosRequestConfig = {
       response.request,
       response
     );
+  },
+  onError: (error) => {
+    console.log('onError', error);
+    if (error.status === 491) {
+      store.dispatch(clearUser());
+    }
   },
 };
 
