@@ -1,46 +1,9 @@
 import { getRoleList } from './api';
 import { EditRoleModal, RoleManagement } from './edit-role';
 
-function useSearchForm() {
+// 搜索表单, 表格
+function useSearch() {
   const [form] = Form.useForm();
-
-  const SearchForm = ({ onSearch, onReset }: { onSearch: () => void; onReset: () => void }) => {
-    return (
-      <Form form={form} layout="inline">
-        <Form.Item name="name" label="角色名称">
-          <Input />
-        </Form.Item>
-
-        <Form.Item name="code" label="角色编码">
-          <Input />
-        </Form.Item>
-
-        <Form.Item name="description" label="描述">
-          <Input />
-        </Form.Item>
-
-        <Form.Item>
-          <Button type="primary" htmlType="submit" icon={<SearchOutlined />} onClick={onSearch}>
-            搜索
-          </Button>
-        </Form.Item>
-
-        <Form.Item>
-          <Button onClick={onReset}>重置</Button>
-        </Form.Item>
-      </Form>
-    );
-  };
-
-  return {
-    SearchForm,
-    form,
-  };
-}
-
-export default function RoleList() {
-  const { SearchForm, form } = useSearchForm();
-
   const { tableProps, search } = useAntdTable(getTableData, {
     form,
     defaultParams: [
@@ -51,7 +14,6 @@ export default function RoleList() {
       },
     ],
   });
-
   Object.assign(tableProps, {
     pagination: {
       ...tableProps.pagination,
@@ -74,6 +36,15 @@ export default function RoleList() {
       };
     });
   }
+  return {
+    form,
+    tableProps,
+    search,
+  };
+}
+
+export default function RoleList() {
+  const { form, tableProps, search } = useSearch();
 
   const columns = [
     {
@@ -124,32 +95,43 @@ export default function RoleList() {
     },
   ];
 
-  const { open, setOpen, onDeleteRole, onEditRole, onAddRole } = RoleManagement({
-    success: search.reset,
-  });
+  const { open, setOpen, loading, onDeleteRole, onEditRole, onAddRole } = RoleManagement();
+  /** 表格操作 **/
   const [record, setRecord] = useState<any>();
   function handleAdd() {
     setOpen(true);
   }
-  function handleDeleteRole(record: any) {
-    onDeleteRole(record.id);
-  }
-  function handleEditRole(record: any) {
+  async function handleEditRole(record: any) {
     setRecord(record);
     setOpen(true);
   }
-  function handleEditRoleOK(values: any) {
-    if (record) {
-      onEditRole(values);
-    } else {
-      onAddRole(values);
-    }
+  async function handleDeleteRole(record: any) {
+    await onDeleteRole(record.id);
+    handleOperationSuccess();
   }
-  function handleEditRoleCancel() {
-    setRecord(undefined);
+  async function handleEditRoleOK(values: any) {
+    if (record) {
+      const params = {
+        id: record.id,
+        name: values.name,
+        code: values.code,
+        description: values.description,
+      };
+      await onEditRole(params);
+    } else {
+      await onAddRole(values);
+    }
+    handleOperationSuccess();
+  }
+  // 操作成功后
+  function handleOperationSuccess() {
     setOpen(false);
     search.reset();
   }
+
+  useEffect(() => {
+    !open && setRecord(null);
+  }, [open]);
 
   return (
     <Layout className="min-h-[calc(100vh-64px-70px)]">
@@ -167,14 +149,49 @@ export default function RoleList() {
           </Button>
         </div>
 
+        {/* 搜索表单 */}
         <Card>
-          <SearchForm onSearch={search.submit} onReset={search.reset} />
+          <Form form={form} layout="inline">
+            <Form.Item name="name" label="角色名称">
+              <Input />
+            </Form.Item>
+
+            <Form.Item name="code" label="角色编码">
+              <Input />
+            </Form.Item>
+
+            <Form.Item name="description" label="描述">
+              <Input />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SearchOutlined />}
+                onClick={search.submit}
+              >
+                搜索
+              </Button>
+            </Form.Item>
+
+            <Form.Item>
+              <Button onClick={search.reset}>重置</Button>
+            </Form.Item>
+          </Form>
         </Card>
+        {/* 表格 */}
         <Card className="shadow-sm mt-2!">
           <Table columns={columns} rowKey="id" {...tableProps} />
         </Card>
       </Layout.Content>
-      <EditRoleModal open={open} onOk={handleEditRoleOK} onCancel={handleEditRoleCancel} />
+      <EditRoleModal
+        open={open}
+        record={record}
+        loading={loading}
+        onOk={handleEditRoleOK}
+        onCancel={() => setOpen(false)}
+      />
     </Layout>
   );
 }

@@ -1,13 +1,15 @@
 import { createRole, updateRole, deleteRole } from './api';
+import { App } from 'antd';
 
 export type EditRoleModalProps = {
   open: boolean;
   record?: any;
+  loading: boolean;
   onOk: (values: any) => void;
   onCancel?: () => void;
 };
 
-export function EditRoleModal({ open, record, onOk, onCancel }: EditRoleModalProps) {
+export function EditRoleModal({ open, record, loading, onOk, onCancel }: EditRoleModalProps) {
   const [form] = Form.useForm();
   function handleOk() {
     form.validateFields().then((values) => {
@@ -21,17 +23,25 @@ export function EditRoleModal({ open, record, onOk, onCancel }: EditRoleModalPro
       }
     });
   }
+
   useEffect(() => {
     if (record) {
       form.setFieldsValue(record);
+    } else {
+      form.resetFields();
     }
-
     return () => {
       form.resetFields();
     };
   }, [record, open]);
   return (
-    <Modal title={record ? '编辑角色' : '新增角色'} open={open} onOk={handleOk} onCancel={onCancel}>
+    <Modal
+      title={record ? '编辑角色' : '新增角色'}
+      open={open}
+      onOk={handleOk}
+      onCancel={onCancel}
+      loading={loading}
+    >
       <Form form={form} layout="horizontal" labelCol={{ span: 4 }} className="pt-4!">
         <Form.Item
           label="角色名称"
@@ -69,42 +79,51 @@ export function EditRoleModal({ open, record, onOk, onCancel }: EditRoleModalPro
   );
 }
 
-export function RoleManagement({ success }: { success: () => void }) {
+export function RoleManagement() {
   const [open, setOpen] = useState(false);
-  const loading = useMemo(() => {
-    return store.getState().system.loading > 0;
-  }, []);
+  const { message } = App.useApp();
+  const [loading, setLoading] = useState(false);
 
   // 删除角色
-  function onDeleteRole(id: string) {
+  async function onDeleteRole(id: string) {
     if (loading) return;
-    deleteRole(id).then(() => {
-      message.success('删除成功');
-      success?.();
-    });
+    try {
+      setLoading(true);
+      await deleteRole(id);
+    } finally {
+      setLoading(false);
+    }
+    message.success('删除成功');
   }
 
   // 编辑角色
-  function onEditRole(record: any) {
+  async function onEditRole(record: any) {
     if (loading) return;
-    updateRole(record).then(() => {
-      message.success('编辑成功');
-      success?.();
-    });
+    try {
+      setLoading(true);
+      await updateRole(record);
+    } finally {
+      setLoading(false);
+    }
+    message.success('编辑成功');
   }
 
   // 新增角色
-  function onAddRole(record: any) {
+  async function onAddRole(record: any) {
     if (loading) return;
-    createRole(record).then(() => {
-      message.success('新增成功');
-      success?.();
-    });
+    try {
+      setLoading(true);
+      await createRole(record);
+    } finally {
+      setLoading(false);
+    }
+    message.success('新增成功');
   }
 
   return {
     open,
     setOpen,
+    loading,
     onDeleteRole,
     onEditRole,
     onAddRole,

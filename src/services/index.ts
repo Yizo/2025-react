@@ -22,7 +22,6 @@ const config: CustomAxiosRequestConfig = {
     return config;
   },
   onBeforeResponse: (response): ApiResponse => {
-    console.log('onBeforeResponse', response);
     const { data } = response;
     if (data?.code === 0) {
       return {
