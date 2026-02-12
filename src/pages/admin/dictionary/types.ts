@@ -4,5 +4,5 @@ export interface ChildRef {
 
 export interface ChildProps {
   ref: React.Ref<ChildRef>;
-  toggle: (typeId?: string) => void;
+  toggle: (typeId?: string, typeName?: string) => void;
 }

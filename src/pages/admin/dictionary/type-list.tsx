@@ -163,7 +163,11 @@ export default function TypeList(props: ChildProps) {
       dataIndex: 'name',
       key: 'name',
     },
-
+    {
+      title: '数据项数量',
+      dataIndex: 'count',
+      key: 'count',
+    },
     {
       title: '状态',
       dataIndex: 'status',
@@ -256,7 +260,7 @@ export default function TypeList(props: ChildProps) {
   }
   function onView(record: any) {
     console.log('查看字典类型', record);
-    toggle(record.id);
+    toggle(record.id, record.name);
   }
   function onDelete(record: any) {
     fetchDeleteDictionaryType(record.id).then(() => {

@@ -1,9 +1,10 @@
 import { App } from 'antd';
+import { useSearchParams } from 'react-router';
 import {
-  getDictionaryTypeList,
-  fetchAddDictionaryType,
-  fetchEditDictionaryType,
-  fetchDeleteDictionaryType,
+  getDictionaryDataList,
+  fetchAddDictionaryData,
+  fetchEditDictionaryData,
+  fetchDeleteDictionaryData,
 } from './api';
 import { cleanObject } from '@/utils/util';
 import type { ChildProps } from './types';
@@ -14,7 +15,7 @@ const statusOptions = [
   { label: '全部', value: null },
 ];
 
-function useSearch() {
+function useSearch(typeId: number | null) {
   const [form] = Form.useForm();
   const result = useAntdTable(getTableData, {
     form,
@@ -42,10 +43,11 @@ function useSearch() {
     const queryParams = {
       page: current,
       pageSize,
+      typeId,
       sort: sort ? (sort === 'ascend' ? 'asc' : 'desc') : undefined,
       ...formData,
     };
-    return getDictionaryTypeList(queryParams).then((res) => {
+    return getDictionaryDataList(queryParams).then((res) => {
       return {
         list: res.data,
         total: res.total,
@@ -60,10 +62,12 @@ function useSearch() {
 
 function TypeModal({
   open,
+  typeId,
   record,
   onClose,
 }: {
   open: boolean;
+  typeId: number | null;
   record?: any;
   onClose: (refresh?: boolean) => void;
 }) {
@@ -78,13 +82,15 @@ function TypeModal({
       if (record) {
         const data = cleanObject({
           id: record.id,
+          typeId,
           name: values.name,
+          value: values.value,
           status: values.status,
-          description: values.description,
+          sortOrder: values.sortOrder,
         });
-        await fetchEditDictionaryType(data);
+        await fetchEditDictionaryData(data);
       } else {
-        await fetchAddDictionaryType(values);
+        await fetchAddDictionaryData({ ...values, typeId });
       }
       message.success(record ? '编辑成功' : '新增成功');
       onClose(true);
@@ -157,10 +163,15 @@ function TypeModal({
 
 export default function DataList(props: ChildProps) {
   const { ref, toggle } = props;
+  const [searchParams] = useSearchParams();
+  const typeId = useMemo(() => {
+    const typeId = searchParams.get('typeId');
+    return typeId !== null ? parseInt(typeId) : null;
+  }, [searchParams]);
   const {
     form,
     result: { tableProps, search, ...searchRest },
-  } = useSearch();
+  } = useSearch(typeId);
   const { sorter = null } = (searchRest.params[0] as any) || {};
 
   const columns = [
@@ -175,7 +186,16 @@ export default function DataList(props: ChildProps) {
       key: 'value',
     },
     {
-      title: '字典顺序',
+      title: () => {
+        return (
+          <div>
+            <span>字典顺序</span>
+            <Tooltip title="数字越小，排序越靠前">
+              <ExclamationCircleOutlined className="ml-2 cursor-pointer" />
+            </Tooltip>
+          </div>
+        );
+      },
       dataIndex: 'sortOrder',
       key: 'sortOrder',
     },
@@ -253,7 +273,7 @@ export default function DataList(props: ChildProps) {
     setOpen(true);
   }
   function onDelete(record: any) {
-    fetchDeleteDictionaryType(record.id).then(() => {
+    fetchDeleteDictionaryData({ id: record.id, typeId }).then(() => {
       message.success('删除成功');
       search.submit();
     });
@@ -286,12 +306,11 @@ export default function DataList(props: ChildProps) {
             <Button onClick={search.reset}>重置</Button>
           </Form.Item>
         </Form>
-        <Button onClick={() => toggle(undefined)}>返回</Button>
       </Card>
       <Card className="mt-4!">
         <Table columns={columns} rowKey="id" {...tableProps} />
       </Card>
-      <TypeModal open={open} record={record} onClose={onModalClose} />
+      <TypeModal typeId={typeId} open={open} record={record} onClose={onModalClose} />
     </div>
   );
 }

@@ -9,6 +9,8 @@ export interface CustomAxiosRequestConfig<T = any> extends AxiosRequestConfig<T>
   showErrorMessage?: boolean;
   // 加载文案
   loadingText?: string | ReactNode;
+  // 是否显示加载中, 默认false
+  showLoading?: boolean;
   // 请求前拦截 - 可以修改请求配置，增加请求头
   onBeforeRequest?: (_config: CustomAxiosRequestConfig<T>) => CustomAxiosRequestConfig<T>;
   // 响应前拦截 - 允许用户对响应进行最终处理，返回指定类型的响应数据

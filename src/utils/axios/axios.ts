@@ -18,6 +18,7 @@ function LoadingManager() {
   }
 
   function destroyLoading() {
+    if (!loadingInstance) return;
     store.dispatch(removeLoading());
     const afterRemove = store.getState().system.loading;
     if (afterRemove === 0) {
@@ -40,9 +41,10 @@ const { openLoading, destroyLoading } = LoadingManager();
 const requestInterceptor = (
   config: InternalAxiosRequestConfig<any>
 ): InternalAxiosRequestConfig<any> => {
-  openLoading();
   const customConfig = config as CustomAxiosRequestConfig;
-
+  if (customConfig.showLoading) {
+    openLoading();
+  }
   if (customConfig.onBeforeRequest) {
     return customConfig.onBeforeRequest(customConfig) as InternalAxiosRequestConfig<any>;
   }
