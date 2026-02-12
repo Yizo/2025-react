@@ -2,8 +2,11 @@ import { createSlice } from '@reduxjs/toolkit';
 import { persistReducer } from 'redux-persist';
 import sessionStorage from 'redux-persist/lib/storage/session';
 import { useRequest } from 'ahooks';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from './index';
 import { request } from '@/services';
+import { resetRoutes, setAdminRoutes } from './menu';
+import { serializeRoutes } from '@/utils/menu.util';
+import adminRoutes from '@/router/adminRoter';
 
 export interface UserState {
   userInfo: null | Record<string, any>;
@@ -42,7 +45,7 @@ export const userSlice = createSlice({
 });
 
 export function useLogin() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { runAsync, loading } = useRequest(
     async (values: any) => {
       const result = await request.post('/api/auth/login', values);
@@ -67,13 +70,16 @@ export function useLogin() {
         },
       })
     );
+    // TODO: 此时需要获取用户信息和菜单
+    // await dispatch(getUserMenusAsync());
+    dispatch(setAdminRoutes(serializeRoutes(adminRoutes)));
   }
 
   return { onLogin, loading };
 }
 
 export function useLogout() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { runAsync, loading } = useRequest(
     async () => {
       const result = await request.get('/api/auth/logout');
@@ -90,6 +96,7 @@ export function useLogout() {
     const { data, message } = result;
     console.log('退出成功:', data, message);
     dispatch(clearUser());
+    dispatch(resetRoutes());
   }
 
   return { onLogout, loading };

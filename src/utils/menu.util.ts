@@ -11,6 +11,19 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 /**
+ * 将路由对象序列化，去除React元素，只保留可序列化的配置
+ * @param routes 路由配置
+ * @returns 可序列化的路由配置
+ */
+export function serializeRoutes(routes: RouteObject[]): RouteObject[] {
+  return routes.map((route: RouteObject) => ({
+    ...route,
+    element: undefined, // 移除React元素
+    children: route.children ? serializeRoutes(route.children) : undefined,
+  })) as RouteObject[];
+}
+
+/**
  * 将路由转换为Menu组件的菜单参数
  * 1. 有title的才添加到菜单中
  */

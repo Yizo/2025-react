@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { persistReducer, createTransform } from 'redux-persist';
+import { persistReducer } from 'redux-persist';
 import sessionStorage from 'redux-persist/lib/storage/session';
 import type { RouteObject } from 'react-router';
 import { routesToAntdMenu } from '@/utils/menu.util';
-import adminRoutes from '@/router/adminRoter';
 import type { MenuItem } from '@/utils/menu.util';
 
 export interface MenuState {
@@ -15,7 +14,7 @@ export interface MenuState {
 type PageFiles = Record<string, () => Promise<any>>;
 
 // 异步获取菜单数据
-export const getUserMenusAsync = createAsyncThunk('menu/getUserMenus', async () => {
+const getUserMenusAsync = createAsyncThunk<RouteObject[], void>('menu/getUserMenus', async () => {
   const pages = import.meta.glob('@/pages/**/*.tsx', { eager: false }) as PageFiles;
   console.log('pages', pages);
   // 这里可以根据实际需求处理页面文件
@@ -28,7 +27,7 @@ const initialState: () => MenuState = () => {
     // 前台菜单
     menus: [],
     // 后台菜单
-    adminMenus: routesToAntdMenu(adminRoutes),
+    adminMenus: [],
   };
 };
 
@@ -39,10 +38,10 @@ export const menuSlice = createSlice({
     setUserRoutes: (state, action) => {
       state.routes = action.payload;
       state.menus = routesToAntdMenu(action.payload);
-      console.log('state.menus', state.menus);
     },
     setAdminRoutes: (state, action) => {
       state.adminMenus = routesToAntdMenu(action.payload);
+      console.log('state.adminMenus', state.adminMenus);
     },
     resetRoutes: (state) => {
       state.routes = [];
@@ -59,7 +58,7 @@ export const menuSlice = createSlice({
 });
 
 export const { setUserRoutes, setAdminRoutes, resetRoutes } = menuSlice.actions;
-
+export { getUserMenusAsync };
 // 为menu模块配置持久化
 const menuPersistConfig = {
   key: import.meta.env.VITE_STORAGE_KEY + '_menu',

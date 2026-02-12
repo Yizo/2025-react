@@ -130,11 +130,13 @@ export default function RoleList() {
   }
 
   useEffect(() => {
-    !open && setRecord(null);
+    if (!open) {
+      setRecord(undefined);
+    }
   }, [open]);
 
   return (
-    <Layout className="min-h-[calc(100vh-64px-70px)]">
+    <Layout>
       <Layout.Content className="p-6 ">
         <div className="mb-6 flex items-center justify-between">
           <div>
