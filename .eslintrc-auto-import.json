@@ -22,6 +22,7 @@
     "request": true,
     "router": true,
     "routesToAntdMenu": true,
+    "serializeRoutes": true,
     "setThemeVariables": true,
     "store": true,
     "tableConfig": true,

@@ -1,49 +1,30 @@
-import { Tabs } from 'antd';
-import { useSearchParams } from 'react-router';
+import useUrlState from '@ahooksjs/use-url-state';
 import TypeList from './type-list';
 import DataList from './data-list';
+import type { ChildRef } from './types';
 
 const { Content } = Layout;
 
-const defaultActiveKey = 'types';
-
 export default function DictionaryManagement() {
-  const [activeKey, setActiveKey] = useState(defaultActiveKey);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const typeListRef = useRef<{ onAdd: () => void }>(null);
-  const dataListRef = useRef<{ onAdd: () => void }>(null);
-  const children = [
-    {
-      key: 'types',
-      label: '字典类型',
-      children: <TypeList ref={typeListRef} />,
-    },
-    {
-      key: 'data',
-      label: '字典数据',
-      children: <DataList ref={dataListRef} />,
-    },
-  ];
-
-  function onChangeActiveKey(key: string) {
-    setActiveKey(key);
-    setSearchParams({ active: key });
-  }
+  const [state, setState] = useUrlState({ activeKey: undefined, typeId: undefined });
+  const activeKey = useMemo(() => state.activeKey, [state]);
+  const typeListRef = useRef<ChildRef>(null);
+  const dataListRef = useRef<ChildRef>(null);
 
   function onAdd() {
-    if (activeKey === 'types') {
-      typeListRef.current?.onAdd();
-    } else {
+    if (activeKey) {
       dataListRef.current?.onAdd();
+    } else {
+      typeListRef.current?.onAdd();
     }
   }
 
-  useEffect(() => {
-    const active = searchParams.get('active');
-    if (active) {
-      setActiveKey(active);
-    }
-  }, []);
+  function toggle(typeId?: string) {
+    setState({
+      typeId,
+      activeKey: activeKey === 'data' ? 'type' : 'data',
+    });
+  }
 
   return (
     <Layout>
@@ -57,16 +38,14 @@ export default function DictionaryManagement() {
             <p className="mt-2">管理系统字典类型和键值对数据</p>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
-            {activeKey === 'types' ? '新增字典类型' : '新增字典数据'}
+            {activeKey ? '新增字典数据' : '新增字典类型'}
           </Button>
         </div>
-        <Tabs
-          activeKey={activeKey}
-          defaultActiveKey={defaultActiveKey}
-          type="card"
-          onChange={onChangeActiveKey}
-          items={children}
-        />
+        {activeKey === 'data' ? (
+          <DataList ref={dataListRef} toggle={toggle} />
+        ) : (
+          <TypeList ref={typeListRef} toggle={toggle} />
+        )}
       </Content>
     </Layout>
   );

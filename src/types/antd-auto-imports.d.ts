@@ -11,6 +11,7 @@ declare global {
   const Col: typeof import('antd').Col
   const Form: typeof import('antd').Form
   const Input: typeof import('antd').Input
+  const InputNumber: typeof import('antd').InputNumber
   const Layout: typeof import('antd').Layout
   const Menu: typeof import('antd').Menu
   const Modal: typeof import('antd').Modal

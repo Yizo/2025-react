@@ -23,6 +23,7 @@ declare global {
   const request: typeof import('../services/index').request
   const router: typeof import('../router/index').default
   const routesToAntdMenu: typeof import('../utils/menu.util').routesToAntdMenu
+  const serializeRoutes: typeof import('../utils/menu.util').serializeRoutes
   const setThemeVariables: typeof import('../store/index').setThemeVariables
   const store: typeof import('../store/index').default
   const tableConfig: typeof import('../config/antd/table').tableConfig

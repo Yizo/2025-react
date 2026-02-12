@@ -6,6 +6,8 @@ import {
   fetchDeleteDictionaryType,
 } from './api';
 import { cleanObject } from '@/utils/util';
+import type { ChildProps } from './types';
+
 const statusOptions = [
   { label: '启用', value: 1 },
   { label: '禁用', value: 0 },
@@ -147,7 +149,8 @@ function TypeModal({
   );
 }
 
-export default function TypeList({ ref }: { ref: React.Ref<{ onAdd: () => void }> }) {
+export default function TypeList(props: ChildProps) {
+  const { ref, toggle } = props;
   const {
     form,
     result: { tableProps, search, ...searchRest },
@@ -214,19 +217,22 @@ export default function TypeList({ ref }: { ref: React.Ref<{ onAdd: () => void }
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 150,
       render: (_: any, record: any) => {
         return (
-          <Space>
-            <Button type="link" onClick={() => onEdit(record)}>
+          <div className="flex items-center gap-2!">
+            <Button type="link" onClick={() => onEdit(record)} className="mx-0! p-0!">
               编辑
             </Button>
+            <Button type="link" onClick={() => onView(record)} className="mx-0! p-0!">
+              查看
+            </Button>
             <Popconfirm title="确定删除这个字典类型吗？" onConfirm={() => onDelete(record)}>
-              <Button type="link" danger>
+              <Button type="link" danger className="mx-0! p-0!">
                 删除
               </Button>
             </Popconfirm>
-          </Space>
+          </div>
         );
       },
     },
@@ -248,6 +254,10 @@ export default function TypeList({ ref }: { ref: React.Ref<{ onAdd: () => void }
     setRecord(record);
     setOpen(true);
   }
+  function onView(record: any) {
+    console.log('查看字典类型', record);
+    toggle(record.id);
+  }
   function onDelete(record: any) {
     fetchDeleteDictionaryType(record.id).then(() => {
       message.success('删除成功');
@@ -260,31 +270,28 @@ export default function TypeList({ ref }: { ref: React.Ref<{ onAdd: () => void }
   return (
     <div>
       <Card>
-        <Form form={form} layout="inline">
-          <Row gutter={2} className="w-full">
-            <Col span={6}>
-              <Form.Item name="name" label="类型名称">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="status" label="类型状态">
-                <Select placeholder="请选择类型状态" options={statusOptions} />
-              </Form.Item>
-            </Col>
-            <Col>
-              <Form.Item>
-                <Button type="primary" onClick={search.submit}>
-                  查询
-                </Button>
-              </Form.Item>
-            </Col>
-            <Col>
-              <Form.Item>
-                <Button onClick={search.reset}>重置</Button>
-              </Form.Item>
-            </Col>
-          </Row>
+        <Form form={form} layout="inline" className="space-y-2!">
+          <Form.Item name="name" label="类型名称">
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="status" label="类型状态">
+            <Select
+              placeholder="请选择类型状态"
+              options={statusOptions}
+              className="min-w-[180px]"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" onClick={search.submit}>
+              查询
+            </Button>
+          </Form.Item>
+
+          <Form.Item>
+            <Button onClick={search.reset}>重置</Button>
+          </Form.Item>
         </Form>
       </Card>
       <Card className="mt-4!">
