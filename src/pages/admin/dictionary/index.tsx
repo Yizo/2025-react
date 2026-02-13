@@ -65,7 +65,7 @@ export default function DictionaryManagement() {
             />
           )}
           <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>
-            {activeKey ? '新增字典数据' : '新增字典类型'}
+            {activeKey === 'type' ? '新增字典类型' : '新增字典数据'}
           </Button>
         </div>
         <ListComponent toggle={toggle} ref={currentRef} />

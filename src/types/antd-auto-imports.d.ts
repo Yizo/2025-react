@@ -9,7 +9,6 @@ declare global {
   const Breadcrumb: typeof import('antd').Breadcrumb
   const Button: typeof import('antd').Button
   const Card: typeof import('antd').Card
-  const Col: typeof import('antd').Col
   const Form: typeof import('antd').Form
   const Input: typeof import('antd').Input
   const InputNumber: typeof import('antd').InputNumber
@@ -18,7 +17,6 @@ declare global {
   const Modal: typeof import('antd').Modal
   const Popconfirm: typeof import('antd').Popconfirm
   const Popover: typeof import('antd').Popover
-  const Row: typeof import('antd').Row
   const Select: typeof import('antd').Select
   const Space: typeof import('antd').Space
   const Table: typeof import('antd').Table

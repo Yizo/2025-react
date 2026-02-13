@@ -159,12 +159,12 @@ export default function TypeList(props: ChildProps) {
 
   const columns = [
     {
-      title: '字典名称',
+      title: '类型名称',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: '数据项数量',
+      title: '类型数据总数',
       dataIndex: 'count',
       key: 'count',
     },

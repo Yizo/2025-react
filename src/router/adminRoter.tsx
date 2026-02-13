@@ -43,13 +43,6 @@ const adminRoutes: RouteObject[] = [
         handle: {
           title: '字典管理',
         },
-        element: <LazyImport lazy={lazy(() => import('@/pages/admin/DictionaryManagement'))} />,
-      },
-      {
-        path: 'dictionary2',
-        handle: {
-          title: '字典管理2',
-        },
         element: <LazyImport lazy={lazy(() => import('@/pages/admin/dictionary/index'))} />,
       },
       {
