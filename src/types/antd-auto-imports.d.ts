@@ -22,6 +22,7 @@ declare global {
   const Table: typeof import('antd').Table
   const Tag: typeof import('antd').Tag
   const Tooltip: typeof import('antd').Tooltip
+  const Tree: typeof import('antd').Tree
   const message: typeof import('antd').message
   const theme: typeof import('antd').theme
 }

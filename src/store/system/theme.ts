@@ -12,17 +12,17 @@ const themeVariables = {
     '--color-primary': '#6366f1',
     '--color-primary-content': '#fff',
     /* 边框颜色: neutral色300 */
-    '--color-border': 'oklch(87% 0 0)',
+    '--color-border': 'rgba(5, 5, 5, 0.06)',
   },
   dark: {
     '--color-base-100': 'oklch(25.33% 0.016 252.42)',
-    '--color-base-200': 'oklch(23.26% 0.014 253.1)',
-    '--color-base-300': 'oklch(21.15% 0.012 254.09)',
+    '--color-base-200': '#141414',
+    '--color-base-300': '#000',
     '--color-base-content': '#fdd5a6d9',
     '--color-primary': '#fa8c16',
     '--color-primary-content': '#fff',
     /* neutral色600 */
-    '--color-border': 'oklch(43.9% 0 0)',
+    '--color-border': 'rgba(253, 253, 253, 0.12)',
   },
 };
 

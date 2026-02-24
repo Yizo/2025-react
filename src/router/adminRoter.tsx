@@ -18,6 +18,14 @@ const adminRoutes: RouteObject[] = [
         element: <LazyImport lazy={lazy(() => import('@/pages/admin/MenuManagement'))} />,
       },
       {
+        index: true,
+        path: 'menu2',
+        handle: {
+          title: '菜单管理2',
+        },
+        element: <LazyImport lazy={lazy(() => import('@/pages/admin/menu/index'))} />,
+      },
+      {
         path: 'user',
         handle: {
           title: '用户管理',

@@ -1,6 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
 import path from 'path';
-import react from '@vitejs/plugin-react-swc';
+//import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
+import babel from 'vite-plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import AutoImport from 'unplugin-auto-import/vite';
 import AntdResolver from 'unplugin-antd-resolver';
@@ -13,7 +15,11 @@ export default ({ mode }: { mode: string }) => {
   console.log('env', env);
   return defineConfig({
     plugins: [
-      react(),
+      react({
+        babel: {
+          plugins: ['babel-plugin-react-compiler'],
+        },
+      }),
       tailwindcss(),
       AutoImport({
         imports: ['react', 'react-dom', 'react-router', 'ahooks'],
