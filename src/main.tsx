@@ -9,6 +9,7 @@ import store, { persistor as persistorStore, getAntdThemeTokens, setThemeVariabl
 import zhCN from 'antd/locale/zh_CN';
 import Router from '@/router';
 import '@/styles/index.css';
+import { initMonitor } from '@/monitor';
 
 dayjs.locale('zh-cn');
 
@@ -47,8 +48,10 @@ export function MainApp() {
   );
 }
 
+initMonitor();
 const root = createRoot(document.getElementById('root')!);
 root.render(<MainApp />);
+
 // 关闭loading
 const firstElement = document.getElementById('first');
 if (firstElement && firstElement.style?.display !== 'none') {

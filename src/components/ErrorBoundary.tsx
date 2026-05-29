@@ -1,6 +1,9 @@
-import { isRouteErrorResponse } from 'react-router';
+import { isRouteErrorResponse, useRouteError } from 'react-router';
+import { captureMonitorEvent, createMonitorEvent } from '@/monitor';
 
-export default function ErrorBoundary({ error }: any) {
+export default function ErrorBoundary() {
+  const error = useRouteError();
+
   let message = 'Oops!';
   let details = 'An unexpected error occurred.';
   let stack: string | undefined;
@@ -9,10 +12,22 @@ export default function ErrorBoundary({ error }: any) {
     message = error.status === 404 ? '404' : 'Error';
     details =
       error.status === 404 ? 'The requested page could not be found.' : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
+  } else if (error instanceof Error) {
     details = error.message;
-    stack = error.stack;
+    if (import.meta.env.DEV) {
+      stack = error.stack;
+    }
+  } else if (error != null) {
+    details = String(error);
   }
+
+  useEffect(() => {
+    if (error instanceof Error) {
+      captureMonitorEvent(createMonitorEvent('react-error', error));
+    } else if (error != null && !isRouteErrorResponse(error)) {
+      captureMonitorEvent(createMonitorEvent('react-error', String(error)));
+    }
+  }, [error]);
 
   return (
     <main className="pt-16 p-4 container mx-auto">

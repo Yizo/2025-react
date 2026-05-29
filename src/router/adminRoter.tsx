@@ -60,6 +60,17 @@ const adminRoutes: RouteObject[] = [
         },
         element: <LazyImport lazy={lazy(() => import('@/pages/admin/LogManagement'))} />,
       },
+      {
+        path: 'monitor',
+        handle: {
+          title: '监控异常',
+        },
+        element: <LazyImport lazy={lazy(() => import('@/pages/admin/monitor/list'))} />,
+      },
+      {
+        path: 'monitor/:systemId',
+        element: <LazyImport lazy={lazy(() => import('@/pages/admin/monitor/detail'))} />,
+      },
     ],
   },
 ];

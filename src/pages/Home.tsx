@@ -3,6 +3,12 @@ import { Typography } from 'antd';
 const { Title, Paragraph } = Typography;
 
 export default function Home() {
+  try {
+    throw new Error('test error');
+  } catch (error) {
+    console.log('error', error);
+  }
+
   return (
     <div className="h-full">
       <Typography className="h-full flex flex-col items-center justify-center">

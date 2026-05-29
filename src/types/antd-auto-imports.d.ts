@@ -13,6 +13,7 @@ declare global {
   const Input: typeof import('antd').Input
   const InputNumber: typeof import('antd').InputNumber
   const Layout: typeof import('antd').Layout
+  const List: typeof import('antd').List
   const Menu: typeof import('antd').Menu
   const Modal: typeof import('antd').Modal
   const Popconfirm: typeof import('antd').Popconfirm
@@ -23,6 +24,7 @@ declare global {
   const Tag: typeof import('antd').Tag
   const Tooltip: typeof import('antd').Tooltip
   const Tree: typeof import('antd').Tree
+  const Typography: typeof import('antd').Typography
   const message: typeof import('antd').message
   const theme: typeof import('antd').theme
 }

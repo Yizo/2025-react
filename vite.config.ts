@@ -2,11 +2,11 @@ import { defineConfig, loadEnv } from 'vite';
 import path from 'path';
 //import react from '@vitejs/plugin-react-swc';
 import react from '@vitejs/plugin-react';
-import babel from 'vite-plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import AutoImport from 'unplugin-auto-import/vite';
 import AntdResolver from 'unplugin-antd-resolver';
 import * as AntdIcons from '@ant-design/icons';
+import { monitorCatchPlugin } from '@gomain-fe/monitor-plugins/vite';
 
 // https://vite.dev/config/
 export default ({ mode }: { mode: string }) => {
@@ -56,6 +56,12 @@ export default ({ mode }: { mode: string }) => {
         },
         include: ['src/**/*.{ts,tsx}'],
       }),
+      monitorCatchPlugin({
+        catch: true,
+        include: ['src/**/*.ts', 'src/**/*.tsx'],
+        exclude: ['node_modules', 'dist'],
+        monitorVar: 'goMainMonitor',
+      }),
     ],
     resolve: {
       alias: {
@@ -68,14 +74,22 @@ export default ({ mode }: { mode: string }) => {
     },
     server: {
       host: true,
-      // proxy: {
-      //   [env.VITE_API_BASE_URL]: {
-      //     target: env.VITE_API_TARGET,
-      //     changeOrigin: true,
-      //     // 将VITE_API_BASE_URL替换为空
-      //     rewrite: (path) => path.replace(env.VITE_API_BASE_URL, ''),
-      //   },
-      // },
+      proxy: {
+        [env.VITE_API_BASE_URL]: {
+          target: env.VITE_API_TARGET,
+          changeOrigin: true,
+          // 将VITE_API_BASE_URL替换为空
+          // rewrite: (path) => path.replace(env.VITE_API_BASE_URL, ''),
+        },
+        '/api/monitor': {
+          target: env.VITE_API_TARGET,
+          changeOrigin: true,
+        },
+        '/api/error-report': {
+          target: env.VITE_API_TARGET,
+          changeOrigin: true,
+        },
+      },
     },
   });
 };

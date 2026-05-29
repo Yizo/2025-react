@@ -79,10 +79,11 @@ export function routesToAntdMenu(routes: RouteObject[]): MenuItem[] {
  * @returns 是否匹配
  */
 function matchMenuPath(menuKey: string, pathname: string): boolean {
-  return !!match(menuKey, {
-    decode: decodeURIComponent,
-    end: true,
-  })(pathname);
+  if (match(menuKey, { decode: decodeURIComponent, end: true })(pathname)) {
+    return true;
+  }
+  // 详情页高亮父级菜单，如 /admin/monitor/1 → /admin/monitor
+  return pathname.startsWith(`${menuKey}/`);
 }
 
 /**

@@ -1,7 +1,8 @@
 import { getRoleList } from './api';
-import { EditRoleModal, RoleManagement } from './edit-role';
+import { EditRoleModal } from './edit-role';
+import { useRoleManagement } from './use-role-management';
+import type { ColumnsType } from 'antd/es/table';
 
-// 搜索表单, 表格
 function useSearch() {
   const [form] = Form.useForm();
   const { tableProps, search } = useAntdTable(getTableData, {
@@ -45,8 +46,49 @@ function useSearch() {
 
 export default function RoleList() {
   const { form, tableProps, search } = useSearch();
+  const { open, setOpen, loading, onDeleteRole, onEditRole, onAddRole } = useRoleManagement();
+  const [record, setRecord] = useState<any>();
 
-  const columns = [
+  function handleAdd() {
+    setOpen(true);
+  }
+
+  async function handleEditRole(item: any) {
+    setRecord(item);
+    setOpen(true);
+  }
+
+  async function handleDeleteRole(item: any) {
+    await onDeleteRole(item.id);
+    handleOperationSuccess();
+  }
+
+  async function handleEditRoleOK(values: any) {
+    if (record) {
+      await onEditRole({
+        id: record.id,
+        name: values.name,
+        code: values.code,
+        description: values.description,
+      });
+    } else {
+      await onAddRole(values);
+    }
+    handleOperationSuccess();
+  }
+
+  function handleOperationSuccess() {
+    setOpen(false);
+    search.reset();
+  }
+
+  useEffect(() => {
+    if (!open) {
+      setRecord(undefined);
+    }
+  }, [open]);
+
+  const columns: ColumnsType<any> = [
     {
       title: '角色名称',
       dataIndex: 'name',
@@ -62,13 +104,11 @@ export default function RoleList() {
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
-      render: (text: string) => {
-        return (
-          <Tooltip title={text}>
-            <span className="truncate line-clamp-2 max-w-[300px]">{text}</span>
-          </Tooltip>
-        );
-      },
+      render: (text: string) => (
+        <Tooltip title={text}>
+          <span className="truncate line-clamp-2 max-w-[300px]">{text}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '更新时间',
@@ -80,60 +120,20 @@ export default function RoleList() {
       title: '操作',
       key: 'action',
       width: 200,
-      render: (_: any, record: any) => (
+      render: (_: unknown, item: any) => (
         <Space>
-          <Popconfirm title="确定删除这个角色吗？" onConfirm={() => handleDeleteRole(record)}>
+          <Popconfirm title="确定删除这个角色吗？" onConfirm={() => handleDeleteRole(item)}>
             <Button type="link" danger>
               删除
             </Button>
           </Popconfirm>
-          <Button type="link" onClick={() => handleEditRole(record)}>
+          <Button type="link" onClick={() => handleEditRole(item)}>
             编辑
           </Button>
         </Space>
       ),
     },
   ];
-
-  const { open, setOpen, loading, onDeleteRole, onEditRole, onAddRole } = RoleManagement();
-  /** 表格操作 **/
-  const [record, setRecord] = useState<any>();
-  function handleAdd() {
-    setOpen(true);
-  }
-  async function handleEditRole(record: any) {
-    setRecord(record);
-    setOpen(true);
-  }
-  async function handleDeleteRole(record: any) {
-    await onDeleteRole(record.id);
-    handleOperationSuccess();
-  }
-  async function handleEditRoleOK(values: any) {
-    if (record) {
-      const params = {
-        id: record.id,
-        name: values.name,
-        code: values.code,
-        description: values.description,
-      };
-      await onEditRole(params);
-    } else {
-      await onAddRole(values);
-    }
-    handleOperationSuccess();
-  }
-  // 操作成功后
-  function handleOperationSuccess() {
-    setOpen(false);
-    search.reset();
-  }
-
-  useEffect(() => {
-    if (!open) {
-      setRecord(undefined);
-    }
-  }, [open]);
 
   return (
     <Layout>
@@ -151,7 +151,6 @@ export default function RoleList() {
           </Button>
         </div>
 
-        {/* 搜索表单 */}
         <Card>
           <Form form={form} layout="inline">
             <Form.Item name="name" label="角色名称">
@@ -182,7 +181,7 @@ export default function RoleList() {
             </Form.Item>
           </Form>
         </Card>
-        {/* 表格 */}
+
         <Card className="shadow-sm mt-2!">
           <Table columns={columns} rowKey="id" {...tableProps} />
         </Card>

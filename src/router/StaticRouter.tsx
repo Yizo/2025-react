@@ -1,3 +1,4 @@
+import { Outlet } from 'react-router';
 import { LazyImport } from '@/components';
 import { Navigate } from 'react-router';
 import type { RouteObject } from 'react-router';
@@ -29,6 +30,26 @@ const staticRoutes: RouteObject[] = [
   {
     path: '/color',
     element: <LazyImport lazy={lazy(() => import('@/pages/Color'))} />,
+  },
+  {
+    path: '/test',
+    element: <Outlet />,
+    children: [
+      {
+        index: true,
+        element: <LazyImport lazy={lazy(() => import('@/pages/test/rxjs'))} />,
+      },
+    ],
+  },
+  {
+    path: '/three',
+    element: <Outlet />,
+    children: [
+      {
+        index: true,
+        element: <LazyImport lazy={lazy(() => import('@/pages/three/index'))} />,
+      },
+    ],
   },
 ];
 

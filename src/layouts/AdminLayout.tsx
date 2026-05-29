@@ -55,7 +55,11 @@ export default function AdminLayout() {
     token: { colorBgContainer },
   } = theme.useToken();
   const systemTheme = useAppSelector((state) => state.system.theme);
-  const menus = useAppSelector((state) => state.menu.adminMenus);
+  const adminMenus = useAppSelector((state) => state.menu.adminMenus);
+  const menus = useMemo(() => {
+    const adminRoot = adminMenus.find((item) => item.key === '/admin');
+    return adminRoot?.children?.length ? adminRoot.children : adminMenus;
+  }, [adminMenus]);
 
   const navigate = useNavigate();
 
