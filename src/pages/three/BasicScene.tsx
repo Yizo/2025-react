@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { BasicSceneModuleFactory, Disposable, SceneFrameHandler } from './types';
 import {
   getContainerSize,
   initRenderer,
@@ -6,13 +7,21 @@ import {
   initCamera,
   initControls,
   initAxesHelper,
-  initCube,
   initResizeObserver,
   initTimer,
   initStats,
   startRenderLoop,
-  type Disposable,
 } from './basic-scene-factory';
+import { initBasicCube } from './basic-cube';
+import { initBasicGroup } from './basic-cube-group';
+
+/**
+ * 场景内容模块列表
+ *
+ * 新增物体时，只需要新增模块并放到这里。
+ * basic-scene-factory 不需要知道具体物体是什么。
+ */
+const sceneModuleFactories: BasicSceneModuleFactory[] = [initBasicCube, initBasicGroup];
 
 /**
  * 创建销毁函数栈
@@ -103,9 +112,17 @@ function init(root: HTMLDivElement) {
   stack.use(initAxesHelper(scene));
 
   /**
-   * 7. 创建立方体
+   * 7. 注册场景内容模块
    */
-  const { cube } = stack.use(initCube(scene));
+  const frameHandlers: SceneFrameHandler[] = [];
+
+  for (const createModule of sceneModuleFactories) {
+    const sceneModule = stack.use(createModule(scene));
+
+    if (sceneModule.onFrame) {
+      frameHandlers.push(sceneModule.onFrame);
+    }
+  }
 
   /**
    * 8. 监听容器尺寸变化
@@ -137,9 +154,9 @@ function init(root: HTMLDivElement) {
       scene,
       camera,
       controls,
-      cube,
       timer,
       stats,
+      frameHandlers,
     })
   );
 

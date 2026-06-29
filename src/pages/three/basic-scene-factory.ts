@@ -1,27 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from 'three/addons/libs/stats.module.js';
+import type { Disposable, SceneFrameHandler } from './types';
 
 export type ContainerSize = {
   width: number;
   height: number;
-};
-
-/**
- * 可销毁资源结构
- *
- * 每个原子初始化函数返回：
- * - value: 创建出来的资源
- * - dispose: 该资源自己的销毁逻辑
- *
- * 好处：
- * - 谁创建，谁销毁
- * - init() 不需要知道每个资源内部怎么释放
- * - 后续加灯光、模型、贴图、GUI、Raycaster 时结构不会乱
- */
-export type Disposable<T> = {
-  value: T;
-  dispose: () => void;
 };
 
 /**
@@ -290,110 +274,6 @@ export function initAxesHelper(scene: THREE.Scene): Disposable<THREE.AxesHelper>
   };
 }
 
-export type CubeResource = {
-  geometry: THREE.BoxGeometry;
-  material: THREE.MeshNormalMaterial;
-  cube: THREE.Mesh<THREE.BoxGeometry, THREE.MeshNormalMaterial>;
-};
-
-/**
- * 创建立方体
- *
- * 这里把 geometry、material、cube 一起作为 value 返回。
- * 原因：
- * - 渲染循环需要 cube
- * - dispose 时需要释放 geometry
- * - dispose 时需要释放 material
- * - dispose 时需要从 scene 中移除 cube
- */
-export function initCube(scene: THREE.Scene): Disposable<CubeResource> {
-  /**
-   * 创建几何体
-   *
-   * BoxGeometry:
-   * - 盒子几何体
-   *
-   * 参数：
-   * - width: 1
-   * - height: 1
-   * - depth: 1
-   */
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-
-  /**
-   * 创建材质
-   *
-   * MeshNormalMaterial:
-   * - 根据法线方向显示颜色
-   * - 不需要灯光也能看到效果
-   * - 适合初学阶段观察 3D 物体表面方向
-   */
-  const material = new THREE.MeshNormalMaterial();
-
-  /**
-   * 创建网格对象
-   *
-   * Mesh = Geometry + Material
-   *
-   * Geometry:
-   * - 决定形状
-   *
-   * Material:
-   * - 决定表面显示效果
-   */
-  const cube = new THREE.Mesh(geometry, material);
-
-  /**
-   * 移动网格
-   *
-   * cube.position.x = 1:
-   * - 表示把 cube 沿 X 轴正方向移动 1 个单位
-   * - X 轴是红色轴
-   * - 通常可以理解为向右移动
-   */
-  cube.position.x = 1;
-
-  /**
-   * 将网格添加到场景中
-   *
-   * 注意：
-   * - 创建 Mesh 后，如果不 add 到 scene
-   * - renderer 是不会渲染它的
-   */
-  scene.add(cube);
-
-  return {
-    value: {
-      geometry,
-      material,
-      cube,
-    },
-
-    /**
-     * 销毁立方体资源
-     */
-    dispose() {
-      /**
-       * 从场景中移除 cube
-       *
-       * remove 只是从 scene 树中移除，
-       * 不等于释放 GPU 资源。
-       */
-      scene.remove(cube);
-
-      /**
-       * 释放 cube 的几何体资源
-       */
-      geometry.dispose();
-
-      /**
-       * 释放 cube 的材质资源
-       */
-      material.dispose();
-    },
-  };
-}
-
 /**
  * 处理尺寸变化
  *
@@ -597,11 +477,11 @@ export function startRenderLoop(params: {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
-  cube: THREE.Mesh;
   timer: THREE.Timer;
   stats: Stats;
+  frameHandlers?: SceneFrameHandler[];
 }): Disposable<null> {
-  const { renderer, scene, camera, controls, cube, timer, stats } = params;
+  const { renderer, scene, camera, controls, timer, stats, frameHandlers = [] } = params;
 
   /**
    * 渲染循环
@@ -613,7 +493,7 @@ export function startRenderLoop(params: {
    * 1. stats.begin()
    * 2. timer.update(timestamp)
    * 3. const delta = timer.getDelta()
-   * 4. 更新物体状态
+   * 4. 通知场景模块更新自己的状态
    * 5. controls.update()
    * 6. renderer.render(scene, camera)
    * 7. stats.end()
@@ -646,24 +526,9 @@ export function startRenderLoop(params: {
      */
     const delta = timer.getDelta();
 
-    /**
-     * 更新 cube 旋转
-     *
-     * 注意：
-     * - rotation.x 不是沿 X 轴移动
-     * - 而是以 X 轴为转轴旋转
-     * - 视觉上通常表现为上下翻滚
-     */
-    cube.rotation.x += delta * 1;
-
-    /**
-     * 如果需要绕 Y 轴旋转，打开这一行。
-     *
-     * rotation.y:
-     * - 以 Y 轴为转轴旋转
-     * - 视觉上通常表现为左右转身
-     */
-    // cube.rotation.y += delta * 1;
+    for (const handleFrame of frameHandlers) {
+      handleFrame(delta);
+    }
 
     /**
      * 更新轨道控制器
