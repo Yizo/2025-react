@@ -3,6 +3,7 @@ import BasicScene from './BasicScene';
 import CircleGeometry from './CircleGeometry';
 import PointGeometry from './PointGeometry';
 import LineGeometry from './LineGeometry';
+import Panorama from './Panorama';
 
 export default function TreePage() {
   const examples = useMemo(
@@ -26,6 +27,11 @@ export default function TreePage() {
         key: 'line-geometry',
         title: '线',
         element: <LineGeometry />,
+      },
+      {
+        key: 'panorama',
+        title: '全景图',
+        element: <Panorama />,
       },
     ],
     []
