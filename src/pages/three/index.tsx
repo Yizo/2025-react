@@ -1,6 +1,7 @@
 import { Card, Layout, Menu, Space, Switch, Typography } from 'antd';
 import BasicScene from './BasicScene';
 import CircleGeometry from './CircleGeometry';
+import PointGeometry from './PointGeometry';
 
 export default function TreePage() {
   const examples = useMemo(
@@ -12,8 +13,13 @@ export default function TreePage() {
       },
       {
         key: 'circle-geometry',
-        title: '圆形几何体',
+        title: '几何体',
         element: <CircleGeometry />,
+      },
+      {
+        key: 'point-geometry',
+        title: '点',
+        element: <PointGeometry />,
       },
     ],
     []
