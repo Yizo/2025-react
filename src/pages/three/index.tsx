@@ -2,6 +2,7 @@ import { Card, Layout, Menu, Space, Switch, Typography } from 'antd';
 import BasicScene from './BasicScene';
 import CircleGeometry from './CircleGeometry';
 import PointGeometry from './PointGeometry';
+import LineGeometry from './LineGeometry';
 
 export default function TreePage() {
   const examples = useMemo(
@@ -20,6 +21,11 @@ export default function TreePage() {
         key: 'point-geometry',
         title: '点',
         element: <PointGeometry />,
+      },
+      {
+        key: 'line-geometry',
+        title: '线',
+        element: <LineGeometry />,
       },
     ],
     []
