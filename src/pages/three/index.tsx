@@ -1,13 +1,19 @@
 import { Card, Layout, Menu, Space, Switch, Typography } from 'antd';
 import BasicScene from './BasicScene';
+import CircleGeometry from './CircleGeometry';
 
 export default function TreePage() {
   const examples = useMemo(
     () => [
       {
         key: 'basic',
-        title: '基础场景（旋转方块）',
+        title: '基本立方体',
         element: <BasicScene />,
+      },
+      {
+        key: 'circle-geometry',
+        title: '圆形几何体',
+        element: <CircleGeometry />,
       },
     ],
     []
