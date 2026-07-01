@@ -4,6 +4,7 @@ import CircleGeometry from './CircleGeometry';
 import PointGeometry from './PointGeometry';
 import LineGeometry from './LineGeometry';
 import Panorama from './Panorama';
+import Css3DScene from './Css3DScene';
 
 export default function TreePage() {
   const examples = useMemo(
@@ -32,6 +33,11 @@ export default function TreePage() {
         key: 'panorama',
         title: '全景图',
         element: <Panorama />,
+      },
+      {
+        key: 'css3d',
+        title: 'CSS3D 渲染器',
+        element: <Css3DScene />,
       },
     ],
     []
