@@ -1,6 +1,7 @@
 import type { ThreeNavigationGroup } from './types';
 import ParallelLightAndEnvironmentLight from '../three-visualization-learning/平行光与环境光';
 import BasicScene from '../three-visualization-learning/基本场景';
+import BasicScene2 from '../three-visualization-learning/基本场景2';
 
 export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
   key: 'three-visualization-learning',
@@ -10,6 +11,11 @@ export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
       key: 'basic-scene',
       title: '基本场景',
       element: <BasicScene />,
+    },
+    {
+      key: 'basic-scene2',
+      title: '基本场景2',
+      element: <BasicScene2 />,
     },
     {
       key: 'parallel-light-and-environment-light',
