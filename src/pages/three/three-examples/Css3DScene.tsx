@@ -41,6 +41,18 @@ function createCardElement(label: string, color: string) {
   return element;
 }
 
+/**
+ * 将鼠标位置转换为三维空间中的坐标
+ * @param event 鼠标事件
+ * @param size 容器尺寸
+ * @returns 三维空间中的坐标
+ */
+function getPointerPosition(event: PointerEvent, size: ContainerSize): THREE.Vector2 {
+  const point = new THREE.Vector2();
+  point.set((event.clientX / size.width) * 2 - 1, -(event.clientY / size.height) * 2 + 1);
+  return point;
+}
+
 function initWebglOverlayRenderer(root: HTMLDivElement, size: ContainerSize) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
