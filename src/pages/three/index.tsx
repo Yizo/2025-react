@@ -134,6 +134,10 @@ export default function TreePage() {
                   />
                 </Space>
               }
+              classNames={{
+                root: 'h-full flex flex-col',
+                body: 'flex-auto',
+              }}
             >
               {visible ? active?.element : null}
             </Card>
