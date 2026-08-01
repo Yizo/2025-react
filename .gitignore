@@ -12,6 +12,7 @@ dist
 docs/*
 dist-ssr
 *.local
+tools/.cache-threejs/
 
 # Editor directories and files
 !.vscode/extensions.json
