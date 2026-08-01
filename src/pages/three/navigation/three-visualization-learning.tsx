@@ -4,6 +4,7 @@ import BasicScene2 from '../three-visualization-learning/基本场景2';
 import PointLight from '../three-visualization-learning/点光源';
 import DirectionalLight from '../three-visualization-learning/平行光';
 import CubeArrayCameraFit from '../three-visualization-learning/阵列立方体与相机适配';
+import CommonGeometries from '../three-visualization-learning/常见几何体';
 
 export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
   key: 'three-visualization-learning',
@@ -33,6 +34,11 @@ export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
       key: 'cube-array-camera-fit',
       title: '阵列立方体与相机适配',
       element: <CubeArrayCameraFit />,
+    },
+    {
+      key: 'common-geometries',
+      title: '常见几何体',
+      element: <CommonGeometries />,
     },
   ],
 };
