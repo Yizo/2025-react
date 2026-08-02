@@ -1,0 +1,608 @@
+{
+  "summary": {
+    "PASS": 100,
+    "FAIL": 0
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "focus": "起始LP",
+      "status": "PASS",
+      "note": "LP=8000"
+    },
+    {
+      "n": 2,
+      "focus": "起始手牌",
+      "status": "PASS",
+      "note": "各抽5"
+    },
+    {
+      "n": 3,
+      "focus": "无重抽",
+      "status": "PASS",
+      "note": "无mulligan"
+    },
+    {
+      "n": 4,
+      "focus": "胜负LP",
+      "status": "PASS",
+      "note": "LP0胜"
+    },
+    {
+      "n": 5,
+      "focus": "抽卡失败",
+      "status": "PASS",
+      "note": "deckout"
+    },
+    {
+      "n": 6,
+      "focus": "双0平局",
+      "status": "PASS",
+      "note": "draw"
+    },
+    {
+      "n": 7,
+      "focus": "特殊胜利",
+      "status": "PASS",
+      "note": "alt win"
+    },
+    {
+      "n": 8,
+      "focus": "主卡40-60",
+      "status": "PASS",
+      "note": "main size"
+    },
+    {
+      "n": 9,
+      "focus": "额外0-15",
+      "status": "PASS",
+      "note": "extra size"
+    },
+    {
+      "n": 10,
+      "focus": "副换额外",
+      "status": "PASS",
+      "note": "side swap"
+    },
+    {
+      "n": 11,
+      "focus": "同名3",
+      "status": "PASS",
+      "note": "3 copies"
+    },
+    {
+      "n": 12,
+      "focus": "始终视为",
+      "status": "PASS",
+      "note": "always treated"
+    },
+    {
+      "n": 13,
+      "focus": "临时改名",
+      "status": "PASS",
+      "note": "temp rename"
+    },
+    {
+      "n": 14,
+      "focus": "MMZ5",
+      "status": "PASS",
+      "note": "5 MMZ"
+    },
+    {
+      "n": 15,
+      "focus": "无里侧攻击",
+      "status": "PASS",
+      "note": "no FD ATK"
+    },
+    {
+      "n": 16,
+      "focus": "EMZ不占5",
+      "status": "PASS",
+      "note": "EMZ free"
+    },
+    {
+      "n": 17,
+      "focus": "EMZ通常1",
+      "status": "PASS",
+      "note": "1 EMZ"
+    },
+    {
+      "n": 18,
+      "focus": "双方场地",
+      "status": "PASS",
+      "note": "2 fields"
+    },
+    {
+      "n": 19,
+      "focus": "控制",
+      "status": "PASS",
+      "note": "control"
+    },
+    {
+      "n": 20,
+      "focus": "持有",
+      "status": "PASS",
+      "note": "possess"
+    },
+    {
+      "n": 21,
+      "focus": "阶段序",
+      "status": "PASS",
+      "note": "phases"
+    },
+    {
+      "n": 22,
+      "focus": "先攻不抽",
+      "status": "PASS",
+      "note": "P1 no draw"
+    },
+    {
+      "n": 23,
+      "focus": "先攻不BP",
+      "status": "PASS",
+      "note": "P1 no BP"
+    },
+    {
+      "n": 24,
+      "focus": "无BP无MP2",
+      "status": "PASS",
+      "note": "no MP2"
+    },
+    {
+      "n": 25,
+      "focus": "空场进BP",
+      "status": "PASS",
+      "note": "empty BP"
+    },
+    {
+      "n": 26,
+      "focus": "手牌6",
+      "status": "PASS",
+      "note": "hand 6"
+    },
+    {
+      "n": 27,
+      "focus": "NS一次",
+      "status": "PASS",
+      "note": "NS 1"
+    },
+    {
+      "n": 28,
+      "focus": "NS表侧攻",
+      "status": "PASS",
+      "note": "NS ATK"
+    },
+    {
+      "n": 29,
+      "focus": "禁NS守备",
+      "status": "PASS",
+      "note": "no NS DEF"
+    },
+    {
+      "n": 30,
+      "focus": "Set非召唤",
+      "status": "PASS",
+      "note": "Set≠Summon"
+    },
+    {
+      "n": 31,
+      "focus": "祭1",
+      "status": "PASS",
+      "note": "trib1"
+    },
+    {
+      "n": 32,
+      "focus": "祭2",
+      "status": "PASS",
+      "note": "trib2"
+    },
+    {
+      "n": 33,
+      "focus": "反转攻",
+      "status": "PASS",
+      "note": "Flip ATK"
+    },
+    {
+      "n": 34,
+      "focus": "同回合反转",
+      "status": "PASS",
+      "note": "no Flip"
+    },
+    {
+      "n": 35,
+      "focus": "无效不耗",
+      "status": "PASS",
+      "note": "neg NS"
+    },
+    {
+      "n": 36,
+      "focus": "否定CL1",
+      "status": "PASS",
+      "note": "CL1"
+    },
+    {
+      "n": 37,
+      "focus": "正规SS",
+      "status": "PASS",
+      "note": "proper SS"
+    },
+    {
+      "n": 38,
+      "focus": "刻度开区间",
+      "status": "PASS",
+      "note": "scale"
+    },
+    {
+      "n": 39,
+      "focus": "刻度差1",
+      "status": "PASS",
+      "note": "diff1"
+    },
+    {
+      "n": 40,
+      "focus": "灵摆手牌区",
+      "status": "PASS",
+      "note": "pend hand"
+    },
+    {
+      "n": 41,
+      "focus": "速攻手牌",
+      "status": "PASS",
+      "note": "QP"
+    },
+    {
+      "n": 42,
+      "focus": "速攻盖放",
+      "status": "PASS",
+      "note": "QP set"
+    },
+    {
+      "n": 43,
+      "focus": "通常魔盖放可发",
+      "status": "PASS",
+      "note": "NS set"
+    },
+    {
+      "n": 44,
+      "focus": "陷阱盖放",
+      "status": "PASS",
+      "note": "trap set"
+    },
+    {
+      "n": 45,
+      "focus": "装备破坏",
+      "status": "PASS",
+      "note": "equip"
+    },
+    {
+      "n": 46,
+      "focus": "费用非效果",
+      "status": "PASS",
+      "note": "cost"
+    },
+    {
+      "n": 47,
+      "focus": "攻击可选",
+      "status": "PASS",
+      "note": "opt atk"
+    },
+    {
+      "n": 48,
+      "focus": "无贯穿",
+      "status": "PASS",
+      "note": "pierce"
+    },
+    {
+      "n": 49,
+      "focus": "EMZ挡直攻",
+      "status": "PASS",
+      "note": "DA"
+    },
+    {
+      "n": 50,
+      "focus": "ATK平",
+      "status": "PASS",
+      "note": "tie"
+    },
+    {
+      "n": 51,
+      "focus": "打穿无伤",
+      "status": "PASS",
+      "note": "no dmg"
+    },
+    {
+      "n": 52,
+      "focus": "守备反伤",
+      "status": "PASS",
+      "note": "rebound"
+    },
+    {
+      "n": 53,
+      "focus": "0攻不破",
+      "status": "PASS",
+      "note": "0ATK"
+    },
+    {
+      "n": 54,
+      "focus": "0攻可被破",
+      "status": "PASS",
+      "note": "0 dies"
+    },
+    {
+      "n": 55,
+      "focus": "里侧翻守备",
+      "status": "PASS",
+      "note": "flip DEF"
+    },
+    {
+      "n": 56,
+      "focus": "翻转后结算",
+      "status": "PASS",
+      "note": "flip after"
+    },
+    {
+      "n": 57,
+      "focus": "伤害步限制",
+      "status": "PASS",
+      "note": "DS"
+    },
+    {
+      "n": 58,
+      "focus": "Replay",
+      "status": "PASS",
+      "note": "replay"
+    },
+    {
+      "n": 59,
+      "focus": "Replay已攻",
+      "status": "PASS",
+      "note": "replay used"
+    },
+    {
+      "n": 60,
+      "focus": "卡效优先",
+      "status": "PASS",
+      "note": "card>rule"
+    },
+    {
+      "n": 61,
+      "focus": "逆序",
+      "status": "PASS",
+      "note": "LIFO"
+    },
+    {
+      "n": 62,
+      "focus": "询问连锁",
+      "status": "PASS",
+      "note": "ask"
+    },
+    {
+      "n": 63,
+      "focus": "SS1",
+      "status": "PASS",
+      "note": "SS1"
+    },
+    {
+      "n": 64,
+      "focus": "SS3",
+      "status": "PASS",
+      "note": "SS3"
+    },
+    {
+      "n": 65,
+      "focus": "速度门槛",
+      "status": "PASS",
+      "note": ">="
+    },
+    {
+      "n": 66,
+      "focus": "新连锁",
+      "status": "PASS",
+      "note": "new chain"
+    },
+    {
+      "n": 67,
+      "focus": "SEGOC",
+      "status": "PASS",
+      "note": "SEGOC"
+    },
+    {
+      "n": 68,
+      "focus": "阶段各自链",
+      "status": "PASS",
+      "note": "phase"
+    },
+    {
+      "n": 69,
+      "focus": "不可连锁动作",
+      "status": "PASS",
+      "note": "unchain"
+    },
+    {
+      "n": 70,
+      "focus": "否定窗口",
+      "status": "PASS",
+      "note": "neg win"
+    },
+    {
+      "n": 71,
+      "focus": "素材不在场",
+      "status": "PASS",
+      "note": "mat"
+    },
+    {
+      "n": 72,
+      "focus": "素材送墓",
+      "status": "PASS",
+      "note": "mat GY"
+    },
+    {
+      "n": 73,
+      "focus": "素材附着",
+      "status": "PASS",
+      "note": "attach"
+    },
+    {
+      "n": 74,
+      "focus": "离开例外",
+      "status": "PASS",
+      "note": "leave"
+    },
+    {
+      "n": 75,
+      "focus": "优先权",
+      "status": "PASS",
+      "note": "prio"
+    },
+    {
+      "n": 76,
+      "focus": "同时选择",
+      "status": "PASS",
+      "note": "simul"
+    },
+    {
+      "n": 77,
+      "focus": "手牌张数公开",
+      "status": "PASS",
+      "note": "hand#"
+    },
+    {
+      "n": 78,
+      "focus": "墓地公开",
+      "status": "PASS",
+      "note": "GY"
+    },
+    {
+      "n": 79,
+      "focus": "墓地征得同意",
+      "status": "PASS",
+      "note": "GY ask FIXED"
+    },
+    {
+      "n": 80,
+      "focus": "额外里侧私密",
+      "status": "PASS",
+      "note": "ED"
+    },
+    {
+      "n": 81,
+      "focus": "Token表侧",
+      "status": "PASS",
+      "note": "token"
+    },
+    {
+      "n": 82,
+      "focus": "Token非超量",
+      "status": "PASS",
+      "note": "tok xyz"
+    },
+    {
+      "n": 83,
+      "focus": "破坏非解放",
+      "status": "PASS",
+      "note": "destroy"
+    },
+    {
+      "n": 84,
+      "focus": "除外放墓",
+      "status": "PASS",
+      "note": "banishGY"
+    },
+    {
+      "n": 85,
+      "focus": "MR融合同调超量",
+      "status": "PASS",
+      "note": "MR FSX"
+    },
+    {
+      "n": 86,
+      "focus": "MR连接灵摆",
+      "status": "PASS",
+      "note": "MR LP"
+    },
+    {
+      "n": 87,
+      "focus": "墓除外再召",
+      "status": "PASS",
+      "note": "GY SS"
+    },
+    {
+      "n": 88,
+      "focus": "陷阱怪",
+      "status": "PASS",
+      "note": "trapmon"
+    },
+    {
+      "n": 89,
+      "focus": "连接值",
+      "status": "PASS",
+      "note": "rating"
+    },
+    {
+      "n": 90,
+      "focus": "连接作素材",
+      "status": "PASS",
+      "note": "Lmat"
+    },
+    {
+      "n": 91,
+      "focus": "对方箭头",
+      "status": "PASS",
+      "note": "opp arrow"
+    },
+    {
+      "n": 92,
+      "focus": "无等级同调",
+      "status": "PASS",
+      "note": "no lv"
+    },
+    {
+      "n": 93,
+      "focus": "仪式主要区",
+      "status": "PASS",
+      "note": "ritual"
+    },
+    {
+      "n": 94,
+      "focus": "仅攻可攻",
+      "status": "PASS",
+      "note": "ATK atk"
+    },
+    {
+      "n": 95,
+      "focus": "禁手改里侧",
+      "status": "PASS",
+      "note": "no set"
+    },
+    {
+      "n": 96,
+      "focus": "原持有者",
+      "status": "PASS",
+      "note": "owner"
+    },
+    {
+      "n": 97,
+      "focus": "场上不含额外",
+      "status": "PASS",
+      "note": "onfield"
+    },
+    {
+      "n": 98,
+      "focus": "ocgcore约束",
+      "status": "PASS",
+      "note": "impl"
+    },
+    {
+      "n": 99,
+      "focus": "比赛次局先后",
+      "status": "PASS",
+      "note": "match 1st FIXED"
+    },
+    {
+      "n": 100,
+      "focus": "抽卡后响应",
+      "status": "PASS",
+      "note": "DP resp"
+    }
+  ]
+}
