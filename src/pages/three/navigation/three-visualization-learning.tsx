@@ -5,6 +5,7 @@ import PointLight from '../three-visualization-learning/点光源';
 import DirectionalLight from '../three-visualization-learning/平行光';
 import CubeArrayCameraFit from '../three-visualization-learning/阵列立方体与相机适配';
 import CommonGeometries from '../three-visualization-learning/常见几何体';
+import CustomGeometry from '../three-visualization-learning/自定义几何体';
 
 export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
   key: 'three-visualization-learning',
@@ -39,6 +40,11 @@ export const threeVisualizationLearningGroup: ThreeNavigationGroup = {
       key: 'common-geometries',
       title: '常见几何体',
       element: <CommonGeometries />,
+    },
+    {
+      key: 'custom-geometry',
+      title: '自定义几何体',
+      element: <CustomGeometry />,
     },
   ],
 };
