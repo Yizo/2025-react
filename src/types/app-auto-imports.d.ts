@@ -15,6 +15,7 @@ declare global {
   const MANAGE_PATH: typeof import('../router/constant').MANAGE_PATH
   const NotFound: typeof import('../components/index').NotFound
   const UserProfileDropdown: typeof import('../components/index').UserProfileDropdown
+  const adminRequest: typeof import('../services/index').adminRequest
   const cancel: typeof import('../services/index').cancel
   const findActiveMenu: typeof import('../utils/menu.util').findActiveMenu
   const formatDate: typeof import('../utils/date.util').formatDate

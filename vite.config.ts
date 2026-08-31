@@ -78,10 +78,12 @@ export default ({ mode }: { mode: string }) => {
         [env.VITE_API_BASE_URL]: {
           target: env.VITE_API_TARGET,
           changeOrigin: true,
-          // 将VITE_API_BASE_URL替换为空
-          // rewrite: (path) => path.replace(env.VITE_API_BASE_URL, ''),
         },
-        '/api/monitor': {
+        [env.VITE_ADMIN_API_BASE_URL]: {
+          target: env.VITE_ADMIN_API_TARGET,
+          changeOrigin: true,
+        },
+        '/api/monitoring': {
           target: env.VITE_API_TARGET,
           changeOrigin: true,
         },

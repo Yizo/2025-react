@@ -1,12 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { persistReducer } from 'redux-persist';
 import sessionStorage from 'redux-persist/lib/storage/session';
-import { useRequest } from 'ahooks';
 import { useAppDispatch } from './index';
-import { request } from '@/services';
-import { resetRoutes, setAdminRoutes } from './menu';
-import { serializeRoutes } from '@/utils/menu.util';
-import adminRoutes from '@/router/adminRoter';
+import { resetRoutes } from './menu';
 
 export interface UserState {
   userInfo: null | Record<string, any>;
@@ -46,60 +42,34 @@ export const userSlice = createSlice({
 
 export function useLogin() {
   const dispatch = useAppDispatch();
-  const { runAsync, loading } = useRequest(
-    async (values: any) => {
-      const result = await request.post('/api/auth/login', values);
-      return result;
-    },
-    {
-      manual: true,
-    }
-  );
-
-  async function onLogin(values: any) {
-    const result = await runAsync(values);
-    console.log('result', result);
-    const { data, message } = result;
-    console.log('登录成功:', data, message);
+  function onLogin(values: any) {
+    const name =
+      typeof values?.username === 'string' && values.username.trim()
+        ? values.username.trim()
+        : '管理员';
     dispatch(
       setUser({
-        token: data.accessToken,
+        // admin-api 当前是公开脚手架，尚未提供登录接口；保留前端会话以便进入管理页面。
+        token: 'admin-api-local-session',
         userInfo: {
-          id: data.user.id,
-          name: data.user.username,
+          id: 0,
+          name,
         },
       })
     );
-    // TODO: 此时需要获取用户信息和菜单
-    // await dispatch(getUserMenusAsync());
-    dispatch(setAdminRoutes(serializeRoutes(adminRoutes)));
   }
 
-  return { onLogin, loading };
+  return { onLogin, loading: false };
 }
 
 export function useLogout() {
   const dispatch = useAppDispatch();
-  const { runAsync, loading } = useRequest(
-    async () => {
-      const result = await request.get('/api/auth/logout');
-      return result;
-    },
-    {
-      manual: true,
-    }
-  );
-
-  async function onLogout() {
-    const result = await runAsync();
-    console.log('result', result);
-    const { data, message } = result;
-    console.log('退出成功:', data, message);
+  function onLogout() {
     dispatch(clearUser());
     dispatch(resetRoutes());
   }
 
-  return { onLogout, loading };
+  return { onLogout, loading: false };
 }
 
 export const { setUserInfo, setToken, setUser, clearUser, logout } = userSlice.actions;

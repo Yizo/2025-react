@@ -1,7 +1,7 @@
-import { Form, Input, Button, Card, Typography, Space, Divider, App } from 'antd';
+import { Form, Input, Button, Card, Typography, Space, App } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { useLogin } from '@/store/user';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ADMIN_PATH } from '@/router/constant';
 
 const { Title, Text } = Typography;
@@ -79,7 +79,11 @@ export default function Login() {
             </Item>
 
             {/* 密码 */}
-            <Item name="password" initialValue={'123456'} rules={rules.password}>
+            <Item
+              name="password"
+              initialValue={'local-owner-password-change-me'}
+              rules={rules.password}
+            >
               <Input.Password
                 prefix={<LockOutlined className="" />}
                 placeholder="请输入密码"
@@ -119,18 +123,6 @@ export default function Login() {
               </Space>
             </Item>
           </Form>
-
-          {/* 分割线 */}
-          <Divider className="!my-6">
-            <Text className="">还没有账户？</Text>
-          </Divider>
-
-          {/* 注册链接 */}
-          <div className="text-center">
-            <Link to="/register" className="font-medium transition-colors duration-200">
-              立即注册
-            </Link>
-          </div>
         </Card>
 
         {/* 底部提示 */}

@@ -1,77 +1,119 @@
-import { Layout, Card, Row, Col } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
+import { App, Button, Card, Col, Descriptions, Layout, Row, Space, Tag, Typography } from 'antd';
+import { CheckCircleOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons';
 import {
-  MenuOutlined,
-  UserOutlined,
-  TeamOutlined,
-  ApartmentOutlined,
-  BookOutlined,
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router';
+  getAppInfo,
+  getLiveHealth,
+  getReadyHealth,
+  initializeSystem,
+  type AppInfo,
+  type HealthResult,
+} from './api';
 
 const { Content } = Layout;
 
-export default function SystemManagement() {
-  const navigate = useNavigate();
+function healthTag(result?: HealthResult, error?: string) {
+  if (error) return <Tag color="error">异常</Tag>;
+  if (!result) return <Tag>检查中</Tag>;
+  return <Tag color="success">正常</Tag>;
+}
 
-  const managementItems = [
-    {
-      title: '菜单管理',
-      icon: <MenuOutlined className="text-2xl text-blue-600" />,
-      description: '管理系统菜单结构',
-      path: '/admin/menu',
-    },
-    {
-      title: '用户管理',
-      icon: <UserOutlined className="text-2xl text-green-600" />,
-      description: '管理系统用户账号',
-      path: '/admin/user',
-    },
-    {
-      title: '角色管理',
-      icon: <TeamOutlined className="text-2xl text-purple-600" />,
-      description: '管理系统角色权限',
-      path: '/admin/role',
-    },
-    {
-      title: '部门管理',
-      icon: <ApartmentOutlined className="text-2xl text-orange-600" />,
-      description: '管理系统组织架构',
-      path: '/admin/department',
-    },
-    {
-      title: '字典管理',
-      icon: <BookOutlined className="text-2xl text-red-600" />,
-      description: '管理系统字典数据',
-      path: '/admin/dictionary',
-    },
-  ];
+export default function SystemManagement() {
+  const { message } = App.useApp();
+  const [appInfo, setAppInfo] = useState<AppInfo>();
+  const [live, setLive] = useState<HealthResult>();
+  const [ready, setReady] = useState<HealthResult>();
+  const [liveError, setLiveError] = useState<string>();
+  const [readyError, setReadyError] = useState<string>();
+  const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(false);
+
+  const loadHealth = useCallback(async () => {
+    setLoading(true);
+    setLiveError(undefined);
+    setReadyError(undefined);
+    const [infoResult, liveResult, readyResult] = await Promise.allSettled([
+      getAppInfo(),
+      getLiveHealth(),
+      getReadyHealth(),
+    ]);
+
+    if (infoResult.status === 'fulfilled') setAppInfo(infoResult.value.data);
+    if (liveResult.status === 'fulfilled') setLive(liveResult.value.data);
+    else setLiveError(liveResult.reason instanceof Error ? liveResult.reason.message : '检查失败');
+    if (readyResult.status === 'fulfilled') setReady(readyResult.value.data);
+    else
+      setReadyError(readyResult.reason instanceof Error ? readyResult.reason.message : '检查失败');
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void loadHealth();
+  }, [loadHealth]);
+
+  async function handleInitialize() {
+    setInitializing(true);
+    try {
+      await initializeSystem();
+      message.success('系统初始化完成');
+    } finally {
+      setInitializing(false);
+    }
+  }
 
   return (
-    <Layout className="min-h-[calc(100vh-64px-70px)]">
-      <Content className="p-6 ">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold ">系统管理</h1>
-          <p className=" mt-2">管理系统的基础数据和组织架构</p>
+    <Content className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Typography.Title level={2} className="!mb-1">
+            <SettingOutlined className="mr-2" />
+            管理首页
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            查看 admin-api 运行状态并执行系统初始化
+          </Typography.Text>
         </div>
+        <Space>
+          <Button icon={<ReloadOutlined />} loading={loading} onClick={() => void loadHealth()}>
+            刷新状态
+          </Button>
+          <Button
+            type="primary"
+            icon={<CheckCircleOutlined />}
+            loading={initializing}
+            onClick={() => void handleInitialize()}
+          >
+            执行系统初始化
+          </Button>
+        </Space>
+      </div>
 
-        <Row gutter={[16, 16]}>
-          {managementItems.map((item) => (
-            <Col xs={24} sm={12} md={8} lg={6} key={item.path}>
-              <Card
-                hoverable
-                className="cursor-pointer transition-all duration-200 hover:shadow-lg"
-                onClick={() => navigate(item.path)}
-              >
-                <div className="text-center">
-                  <div className="mb-4 flex justify-center">{item.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                  <p className=" text-sm">{item.description}</p>
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Content>
-    </Layout>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="应用信息">
+            <Descriptions column={1} size="small">
+              <Descriptions.Item label="名称">{appInfo?.name ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="版本">{appInfo?.version ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="环境">{appInfo?.environment ?? '-'}</Descriptions.Item>
+              <Descriptions.Item label="服务消息">{appInfo?.message ?? '-'}</Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title="健康检查">
+            <Descriptions column={1} size="small">
+              <Descriptions.Item label="进程存活">
+                {healthTag(live, liveError)}{' '}
+                {liveError && <Typography.Text type="danger">{liveError}</Typography.Text>}
+              </Descriptions.Item>
+              <Descriptions.Item label="服务就绪">
+                {healthTag(ready, readyError)}{' '}
+                {readyError && <Typography.Text type="danger">{readyError}</Typography.Text>}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+      </Row>
+    </Content>
   );
 }

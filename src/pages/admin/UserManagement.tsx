@@ -1,393 +1,354 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  Layout,
-  Table,
+  App,
   Button,
-  Modal,
+  Card,
   Form,
   Input,
+  Layout,
+  Modal,
+  Popconfirm,
   Select,
   Space,
-  message,
-  Popconfirm,
-  Card,
+  Table,
   Tag,
-  Avatar,
+  Typography,
 } from 'antd';
+import { EditOutlined, PlusOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { formatDate } from '@/utils/date.util';
+import LazyDepartmentTreeSelect from './components/LazyDepartmentTreeSelect';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  UserOutlined,
-  LockOutlined,
-} from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+  createUser,
+  getDepartments,
+  getRoles,
+  getUsers,
+  removeUser,
+  updateUser,
+  type Department,
+  type Role,
+  type Status,
+  type User,
+  type UserQuery,
+} from './api';
 
 const { Content } = Layout;
-const { Option } = Select;
 
-// 用户数据类型
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-  phone?: string;
-  status: 'active' | 'inactive';
-  roleIds: string[];
-  departmentId?: string;
-  createTime: string;
-  lastLoginTime?: string;
+const statusOptions: { label: string; value: Status }[] = [
+  { label: '启用', value: 1 },
+  { label: '停用', value: 0 },
+];
+
+interface UserFormValues {
+  userName: string;
+  displayName: string;
+  password?: string;
+  deptIds?: number[];
+  roleIds?: number[];
+  status: Status;
 }
 
 export default function UserManagement() {
+  const { message } = App.useApp();
+  const [query, setQuery] = useState<UserQuery>({ page: 1, pageSize: 20 });
   const [users, setUsers] = useState<User[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [total, setTotal] = useState(0);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User>();
+  const [searchForm] = Form.useForm<UserQuery>();
+  const [form] = Form.useForm<UserFormValues>();
 
-  // 模拟用户数据
-  const mockUsers: User[] = [
-    {
-      id: '1',
-      username: 'admin',
-      name: '管理员',
-      email: 'admin@example.com',
-      phone: '13800138000',
-      status: 'active',
-      roleIds: ['1', '2'],
-      departmentId: '1',
-      createTime: '2024-01-01',
-      lastLoginTime: '2024-02-09',
-    },
-    {
-      id: '2',
-      username: 'user1',
-      name: '张三',
-      email: 'zhangsan@example.com',
-      phone: '13800138001',
-      status: 'active',
-      roleIds: ['2'],
-      departmentId: '2',
-      createTime: '2024-01-15',
-      lastLoginTime: '2024-02-08',
-    },
-    {
-      id: '3',
-      username: 'user2',
-      name: '李四',
-      email: 'lisi@example.com',
-      phone: '13800138002',
-      status: 'inactive',
-      roleIds: ['3'],
-      departmentId: '3',
-      createTime: '2024-02-01',
-    },
-  ];
-
-  const mockRoles = [
-    { id: '1', name: '超级管理员' },
-    { id: '2', name: '管理员' },
-    { id: '3', name: '普通用户' },
-  ];
-
-  const mockDepartments = [
-    { id: '1', name: '技术部' },
-    { id: '2', name: '产品部' },
-    { id: '3', name: '运营部' },
-  ];
+  const roleNameMap = useMemo(
+    () => new Map(roles.map((role) => [role.id, role.roleName])),
+    [roles]
+  );
+  const departmentNameMap = useMemo(
+    () => new Map(departments.map((department) => [department.id, department.deptName])),
+    [departments]
+  );
 
   useEffect(() => {
-    fetchUsers();
+    let active = true;
+    setLoading(true);
+    getUsers(query)
+      .then((response) => {
+        if (!active) return;
+        setUsers(response.data.items);
+        setTotal(response.data.total);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query]);
+
+  useEffect(() => {
+    let active = true;
+    setOptionsLoading(true);
+    Promise.all([
+      getRoles({ page: 1, pageSize: 100, status: 1 }),
+      getDepartments({ page: 1, pageSize: 100, status: 1 }),
+    ])
+      .then(([roleResponse, departmentResponse]) => {
+        if (!active) return;
+        setRoles(roleResponse.data.items);
+        setDepartments(departmentResponse.data.items);
+      })
+      .finally(() => {
+        if (active) setOptionsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    // 模拟API调用
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 500);
-  };
-
-  const handleAdd = () => {
-    setEditingUser(null);
+  function openCreate() {
+    setEditingUser(undefined);
     form.resetFields();
-    form.setFieldsValue({ status: 'active' });
-    setIsModalVisible(true);
-  };
+    form.setFieldsValue({ status: 1, deptIds: [], roleIds: [] });
+    setModalOpen(true);
+  }
 
-  const handleEdit = (user: User) => {
+  function openEdit(user: User) {
     setEditingUser(user);
     form.setFieldsValue({
-      username: user.username,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      status: user.status,
+      userName: user.userName,
+      displayName: user.displayName,
+      deptIds: user.deptIds,
       roleIds: user.roleIds,
-      departmentId: user.departmentId,
+      status: user.status,
+      password: undefined,
     });
-    setIsModalVisible(true);
-  };
+    setModalOpen(true);
+  }
 
-  const handleDelete = async (id: string) => {
-    // 这里应该调用删除API
-    setUsers(users.filter((user) => user.id !== id));
-    message.success('删除成功');
-  };
-
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      if (editingUser) {
-        // 编辑
-        setUsers(users.map((user) => (user.id === editingUser.id ? { ...user, ...values } : user)));
-        message.success('编辑成功');
-      } else {
-        // 新增
-        const newUser: User = {
-          id: Date.now().toString(),
-          ...values,
-          createTime: new Date().toISOString().split('T')[0],
-        };
-        setUsers([...users, newUser]);
-        message.success('新增成功');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-    } catch (error) {
-      console.error('表单验证失败:', error);
+  async function saveUser(values: UserFormValues) {
+    if (editingUser) {
+      const payload = {
+        displayName: values.displayName,
+        deptIds: values.deptIds ?? [],
+        roleIds: values.roleIds ?? [],
+        status: values.status,
+        ...(values.password?.trim() ? { password: values.password } : {}),
+      };
+      await updateUser(editingUser.id, payload);
+      message.success('用户更新成功');
+    } else {
+      await createUser({
+        userName: values.userName,
+        displayName: values.displayName,
+        password: values.password ?? '',
+        deptIds: values.deptIds ?? [],
+        roleIds: values.roleIds ?? [],
+        status: values.status,
+      });
+      message.success('用户创建成功');
     }
-  };
+    setModalOpen(false);
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-  };
+  async function handleRemove(user: User) {
+    await removeUser(user.id);
+    message.success('用户已删除');
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  const columns: ColumnsType<User> = [
-    {
-      title: '头像',
-      dataIndex: 'avatar',
-      width: 80,
-      render: () => <Avatar icon={<UserOutlined />} />,
-    },
-    {
-      title: '用户名',
-      dataIndex: 'username',
-      key: 'username',
-    },
-    {
-      title: '姓名',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '邮箱',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '手机号',
-      dataIndex: 'phone',
-      key: 'phone',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>
-          {status === 'active' ? '正常' : '禁用'}
-        </Tag>
-      ),
-    },
-    {
-      title: '角色',
-      dataIndex: 'roleIds',
-      key: 'roleIds',
-      render: (roleIds: string[]) => (
-        <div>
-          {roleIds.map((roleId) => {
-            const role = mockRoles.find((r) => r.id === roleId);
-            return role ? <Tag key={roleId}>{role.name}</Tag> : null;
-          })}
-        </div>
-      ),
-    },
-    {
-      title: '部门',
-      dataIndex: 'departmentId',
-      key: 'departmentId',
-      render: (departmentId: string) => {
-        const department = mockDepartments.find((d) => d.id === departmentId);
-        return department ? department.name : '-';
-      },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-    },
-    {
-      title: '最后登录',
-      dataIndex: 'lastLoginTime',
-      key: 'lastLoginTime',
-      render: (time: string) => time || '-',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 150,
-      render: (_, record) => (
-        <Space size="small">
-          <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Popconfirm title="确定删除这个用户吗？" onConfirm={() => handleDelete(record.id)}>
-            <Button size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  function submitSearch(values: Partial<UserQuery>) {
+    setQuery({
+      page: 1,
+      pageSize: query.pageSize,
+      ...(values.userName ? { userName: values.userName.trim() } : {}),
+      ...(values.displayName ? { displayName: values.displayName.trim() } : {}),
+      ...(values.deptId !== undefined ? { deptId: values.deptId } : {}),
+      ...(values.status !== undefined ? { status: values.status } : {}),
+    });
+  }
+
+  function resetSearch() {
+    searchForm.resetFields();
+    setQuery({ page: 1, pageSize: query.pageSize });
+  }
 
   return (
-    <Layout className="min-h-[calc(100vh-64px-70px)]">
-      <Content className="p-6 ">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold  flex items-center">
-              <UserOutlined className="mr-2" />
-              用户管理
-            </h1>
-            <p className=" mt-2">管理系统用户账号信息</p>
-          </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            新增用户
-          </Button>
+    <Content className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Typography.Title level={2} className="!mb-1">
+            <UserOutlined className="mr-2" />
+            用户管理
+          </Typography.Title>
+          <Typography.Text type="secondary">维护用户账号、部门、角色和启停状态</Typography.Text>
         </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          新增用户
+        </Button>
+      </div>
 
-        <Card className="shadow-sm">
-          <Table
-            columns={columns}
-            dataSource={users}
-            rowKey="id"
-            loading={loading}
-            pagination={{
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
-            }}
-          />
-        </Card>
+      <Card className="!mb-0">
+        <Form form={searchForm} layout="inline" onFinish={submitSearch}>
+          <Form.Item name="userName" label="用户账号">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="displayName" label="显示名称">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="deptId" label="部门">
+            <LazyDepartmentTreeSelect
+              initialItems={departments}
+              status={1}
+              placeholder="请选择部门"
+            />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select allowClear options={statusOptions} style={{ width: 120 }} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                查询
+              </Button>
+              <Button onClick={resetSearch}>重置</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
 
-        <Modal
-          title={editingUser ? '编辑用户' : '新增用户'}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={handleModalCancel}
-          width={600}
+      <Card className="mt-4!">
+        <Table<User>
+          rowKey="id"
+          loading={loading}
+          dataSource={users}
+          columns={[
+            { title: '用户账号', dataIndex: 'userName', key: 'userName' },
+            { title: '显示名称', dataIndex: 'displayName', key: 'displayName' },
+            {
+              title: '部门',
+              key: 'departments',
+              render: (_: unknown, user: User) =>
+                user.deptIds.length
+                  ? user.deptIds.map((id) => departmentNameMap.get(id) ?? `#${id}`).join('、')
+                  : '-',
+            },
+            {
+              title: '角色',
+              key: 'roles',
+              render: (_: unknown, user: User) =>
+                user.roleIds.length
+                  ? user.roleIds.map((id) => roleNameMap.get(id) ?? `#${id}`).join('、')
+                  : '-',
+            },
+            {
+              title: '状态',
+              dataIndex: 'status',
+              key: 'status',
+              render: (status: Status) => (
+                <Tag color={status === 1 ? 'success' : 'default'}>
+                  {status === 1 ? '启用' : '停用'}
+                </Tag>
+              ),
+            },
+            {
+              title: '更新时间',
+              dataIndex: 'updatedAt',
+              key: 'updatedAt',
+              render: (value: string) => formatDate(value),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 150,
+              render: (_: unknown, user: User) => (
+                <Space>
+                  <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(user)}>
+                    编辑
+                  </Button>
+                  <Popconfirm
+                    title="确认软删除此用户？"
+                    description="删除后会同时解除用户的部门和角色关联。"
+                    onConfirm={() => handleRemove(user)}
+                  >
+                    <Button type="link" danger>
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+          pagination={{
+            current: query.page,
+            pageSize: query.pageSize,
+            total,
+            showSizeChanger: true,
+            showTotal: (value) => `共 ${value} 条`,
+            onChange: (page, pageSize) => setQuery((current) => ({ ...current, page, pageSize })),
+          }}
+        />
+      </Card>
+
+      <Modal
+        title={editingUser ? '编辑用户' : '新增用户'}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={() => form.submit()}
+        destroyOnHidden
+      >
+        <Form<UserFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={saveUser}
+          initialValues={{ status: 1, deptIds: [], roleIds: [] }}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{
-              status: 'active',
-            }}
+          <Form.Item
+            name="userName"
+            label="用户账号"
+            rules={[
+              { required: true, message: '请输入用户账号' },
+              { max: 100, message: '用户账号不能超过100个字符' },
+              { pattern: /^[A-Za-z0-9_]+$/, message: '只能包含字母、数字和下划线' },
+            ]}
           >
-            <Form.Item
-              name="username"
-              label="用户名"
-              rules={[
-                { required: true, message: '请输入用户名' },
-                { min: 3, message: '用户名至少3个字符' },
-              ]}
-            >
-              <Input
-                prefix={<UserOutlined />}
-                placeholder="请输入用户名"
-                disabled={!!editingUser}
-              />
-            </Form.Item>
-
-            <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>
-              <Input placeholder="请输入姓名" />
-            </Form.Item>
-
-            <Form.Item
-              name="email"
-              label="邮箱"
-              rules={[
-                { required: true, message: '请输入邮箱' },
-                { type: 'email', message: '请输入有效的邮箱地址' },
-              ]}
-            >
-              <Input placeholder="请输入邮箱" />
-            </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="手机号"
-              rules={[{ pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' }]}
-            >
-              <Input placeholder="请输入手机号" />
-            </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Select placeholder="请选择状态">
-                <Option value="active">正常</Option>
-                <Option value="inactive">禁用</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="roleIds"
-              label="角色"
-              rules={[{ required: true, message: '请选择角色' }]}
-            >
-              <Select mode="multiple" placeholder="请选择角色">
-                {mockRoles.map((role) => (
-                  <Option key={role.id} value={role.id}>
-                    {role.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="departmentId" label="部门">
-              <Select placeholder="请选择部门">
-                {mockDepartments.map((dept) => (
-                  <Option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            {!editingUser && (
-              <Form.Item
-                name="password"
-                label="密码"
-                rules={[
-                  { required: true, message: '请输入密码' },
-                  { min: 6, message: '密码至少6个字符' },
-                ]}
-              >
-                <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" />
-              </Form.Item>
-            )}
-          </Form>
-        </Modal>
-      </Content>
-    </Layout>
+            <Input disabled={!!editingUser} />
+          </Form.Item>
+          <Form.Item
+            name="displayName"
+            label="显示名称"
+            rules={[{ required: true, message: '请输入显示名称' }, { max: 100 }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label={editingUser ? '新密码（留空不修改）' : '登录密码'}
+            rules={[
+              ...(editingUser ? [] : [{ required: true, message: '请输入登录密码' }]),
+              { min: 8, message: '密码长度不能少于8位' },
+              { max: 128, message: '密码长度不能超过128位' },
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item name="deptIds" label="所属部门">
+            <LazyDepartmentTreeSelect multiple initialItems={departments} status={1} />
+          </Form.Item>
+          <Form.Item name="roleIds" label="角色">
+            <Select
+              mode="multiple"
+              loading={optionsLoading}
+              options={roles.map((role) => ({ label: role.roleName, value: role.id }))}
+            />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select options={statusOptions} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Content>
   );
 }

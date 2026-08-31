@@ -2,60 +2,55 @@ import type { MonitorEventType } from '@gomain-fe/monitor-types';
 
 export type { MonitorEventType };
 
-/** 业务系统（monitor_biz_systems） */
-export interface BusinessSystem {
-  id: number;
-  appId: string;
+export interface MonitorApp {
+  id: string;
+  code: string;
   name: string;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateBusinessSystemDto {
-  name: string;
-  enabled?: boolean;
+export interface MonitorAppPageResult {
+  items: MonitorApp[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
-export interface UpdateBusinessSystemDto {
-  id: number;
+export interface CreateMonitorAppInput {
+  code: string;
+  name: string;
+}
+
+export interface UpdateMonitorAppInput {
   name?: string;
   enabled?: boolean;
 }
 
-/** 监控日志（client_errors） */
+export interface CreateMonitorAppResult {
+  id: string;
+  ingestKey: string;
+}
+
 export interface ClientErrorRecord {
   id: string;
-  type: MonitorEventType;
+  eventId: string;
+  fingerprint: string;
   message: string;
-  timestamp?: string;
-  url?: string;
+  occurredAt: string;
   stack?: string;
-  filename?: string;
-  lineno?: number;
-  colno?: number;
-  tags?: Record<string, string>;
-  extra?: Record<string, unknown>;
-  systemId?: number;
   appId: string;
-  release?: string;
-  context?: Record<string, string | number | boolean | null>;
-  userAgent?: string;
-  ip?: string;
+  context?: Record<string, unknown>;
+  processedAt?: string | null;
   createdAt: string;
 }
 
-export const EVENT_TYPE_OPTIONS: { label: string; value: MonitorEventType }[] = [
-  { label: '运行时错误', value: 'runtime-error' },
-  { label: 'Promise 错误', value: 'promise-error' },
-  { label: '资源错误', value: 'resource-error' },
-  { label: '请求错误', value: 'request-error' },
-  { label: 'Vue 错误', value: 'vue-error' },
-  { label: 'React 错误', value: 'react-error' },
-  { label: 'SDK 错误', value: 'sdk-error' },
-  { label: '捕获错误', value: 'caught-error' },
-  { label: '手动上报', value: 'manual-error' },
-];
+export interface ClientErrorCursorResult {
+  items: ClientErrorRecord[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
 
 export const EVENT_TYPE_LABELS: Record<MonitorEventType, string> = {
   'runtime-error': '运行时错误',

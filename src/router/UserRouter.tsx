@@ -49,13 +49,6 @@ const useStaticRoutes: RouteObject[] = [
       },
     ],
   },
-  {
-    path: '/register',
-    handle: {
-      title: '注册',
-    },
-    element: <LazyImport lazy={lazy(() => import('@/pages/Register'))} />,
-  },
 ];
 
 export default useStaticRoutes;

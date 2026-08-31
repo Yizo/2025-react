@@ -13,6 +13,8 @@ import { initMonitor } from '@/monitor';
 
 dayjs.locale('zh-cn');
 
+initMonitor();
+
 function LoadingScreen() {
   return (
     <div className="flex justify-center items-center h-screen">
@@ -48,7 +50,6 @@ export function MainApp() {
   );
 }
 
-initMonitor();
 const root = createRoot(document.getElementById('root')!);
 root.render(<MainApp />);
 

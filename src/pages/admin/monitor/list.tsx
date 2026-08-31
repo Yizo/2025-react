@@ -1,205 +1,237 @@
+import { useEffect, useState } from 'react';
+import {
+  App,
+  Button,
+  Card,
+  Form,
+  Input,
+  Layout,
+  Popconfirm,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
+import { BugOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { formatDate } from '@/utils/date.util';
 import { useNavigate } from 'react-router';
-import { getBusinessSystemList } from './api';
-import { EditSystemModal, useSystemManagement } from './edit-system';
-import type { BusinessSystem } from './types';
-import type { ColumnsType } from 'antd/es/table';
+import { getMonitorApps } from './api';
+import { EditMonitorAppModal } from './edit-system';
+import { useMonitorAppManagement } from './use-system-management';
+import type { MonitorApp } from './types';
 
-function useSearch() {
-  const [form] = Form.useForm();
-  const { tableProps, search } = useAntdTable(getTableData, {
-    form,
-    defaultParams: [{ current: 1, pageSize: 10, total: 0 }],
-  });
+const { Content } = Layout;
 
-  Object.assign(tableProps, {
-    pagination: {
-      ...tableProps.pagination,
-      ...tableConfig.pagination,
-    },
-  });
+interface MonitorSearchValues {
+  name?: string;
+  code?: string;
+  enabled?: boolean;
+}
 
-  function getTableData(...args: Record<string, unknown>[]) {
-    const [pagination, formData] = args;
-    const { current, pageSize } = pagination as { current: number; pageSize: number };
-    return getBusinessSystemList({
-      page: current,
-      pageSize,
-      ...formData,
-    }).then((res) => {
-      return {
-        list: res.data,
-        total: res.total,
-      };
+interface MonitorAppQuery extends MonitorSearchValues {
+  page: number;
+  pageSize: number;
+}
+
+export default function MonitorAppList() {
+  const { modal } = App.useApp();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState<MonitorAppQuery>({ page: 1, pageSize: 20 });
+  const [apps, setApps] = useState<MonitorApp[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingApp, setEditingApp] = useState<MonitorApp>();
+  const [searchForm] = Form.useForm<MonitorSearchValues>();
+  const { loading: saving, create, update, setEnabled } = useMonitorAppManagement();
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getMonitorApps(query)
+      .then((response) => {
+        if (!active) return;
+        setApps(response.data.items);
+        setTotal(response.data.total);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query]);
+
+  function openCreate() {
+    setEditingApp(undefined);
+    setModalOpen(true);
+  }
+
+  function openEdit(app: MonitorApp) {
+    setEditingApp(app);
+    setModalOpen(true);
+  }
+
+  async function handleSave(values: { code: string; name: string; enabled: boolean }) {
+    if (editingApp) {
+      await update(editingApp, { name: values.name, enabled: values.enabled });
+    } else {
+      const result = await create({ code: values.code, name: values.name });
+      if (result?.ingestKey) {
+        modal.info({
+          title: '监控应用创建成功',
+          content: (
+            <div>
+              <p>请立即复制并保存 ingestKey，后端不会再次返回明文密钥。</p>
+              <Typography.Text code copyable={{ text: result.ingestKey }}>
+                {result.ingestKey}
+              </Typography.Text>
+            </div>
+          ),
+          okText: '我已保存',
+        });
+      }
+    }
+    setModalOpen(false);
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
+
+  function submitSearch(values: MonitorSearchValues) {
+    setQuery({
+      page: 1,
+      pageSize: query.pageSize,
+      ...(values.name?.trim() ? { name: values.name.trim() } : {}),
+      ...(values.code?.trim() ? { code: values.code.trim() } : {}),
+      ...(values.enabled !== undefined ? { enabled: values.enabled } : {}),
     });
   }
 
-  return { form, tableProps, search };
-}
-
-export default function BusinessSystemList() {
-  const navigate = useNavigate();
-  const { form, tableProps, search } = useSearch();
-  const { open, setOpen, loading, onDelete, onEdit, onAdd } = useSystemManagement();
-  const [record, setRecord] = useState<BusinessSystem>();
-
-  function goToLogs(item: BusinessSystem) {
-    navigate(`/admin/monitor/${item.id}`, { state: { system: item } });
+  async function toggleEnabled(app: MonitorApp) {
+    await setEnabled(app, !app.enabled);
+    setQuery((current) => ({ ...current, page: current.page }));
   }
-
-  function handleAdd() {
-    setRecord(undefined);
-    setOpen(true);
-  }
-
-  function handleEdit(item: BusinessSystem) {
-    setRecord(item);
-    setOpen(true);
-  }
-
-  async function handleDelete(item: BusinessSystem) {
-    await onDelete(item.id);
-    search.reset();
-  }
-
-  async function handleOk(values: { name: string; enabled: boolean }) {
-    if (record) {
-      await onEdit(record, values);
-    } else {
-      await onAdd(values);
-    }
-    setOpen(false);
-    search.reset();
-  }
-
-  useEffect(() => {
-    if (!open) setRecord(undefined);
-  }, [open]);
-
-  const columns: ColumnsType<BusinessSystem> = [
-    {
-      title: '系统名称',
-      dataIndex: 'name',
-      key: 'name',
-      render: (name: string, item) => (
-        <Button type="link" className="p-0!" onClick={() => goToLogs(item)}>
-          {name}
-        </Button>
-      ),
-    },
-    {
-      title: 'App ID',
-      dataIndex: 'appId',
-      key: 'appId',
-      width: 280,
-      ellipsis: true,
-      render: (appId: string) => (
-        <Typography.Text copyable={{ text: appId }}>{appId}</Typography.Text>
-      ),
-    },
-    {
-      title: '状态',
-      dataIndex: 'enabled',
-      key: 'enabled',
-      width: 90,
-      render: (enabled: boolean) => (
-        <Tag color={enabled ? 'green' : 'default'}>{enabled ? '启用' : '禁用'}</Tag>
-      ),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      width: 180,
-      render: (text: string) => formatDate(text),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 220,
-      render: (_: unknown, item) => (
-        <Space onClick={(e) => e.stopPropagation()}>
-          <Button type="link" onClick={() => goToLogs(item)}>
-            查看日志
-          </Button>
-          <Button type="link" onClick={() => handleEdit(item)}>
-            编辑
-          </Button>
-          <Popconfirm title="确定删除该业务系统吗？" onConfirm={() => handleDelete(item)}>
-            <Button type="link" danger>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
 
   return (
-    <Layout>
-      <Layout.Content className="p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center">
-              <BugOutlined className="mr-2" />
-              监控异常
-            </h1>
-            <p className="mt-2">管理业务系统，点击进入查看监控日志</p>
-          </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            新增业务系统
-          </Button>
+    <Content className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Typography.Title level={2} className="!mb-1">
+            <BugOutlined className="mr-2" />
+            监控应用
+          </Typography.Title>
+          <Typography.Text type="secondary">保留旧监控服务的应用管理与错误日志入口</Typography.Text>
         </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          新增监控应用
+        </Button>
+      </div>
 
-        <Card className="mb-4">
-          <Form form={form} layout="inline">
-            <Form.Item name="name" label="系统名称">
-              <Input placeholder="模糊搜索" allowClear />
-            </Form.Item>
-            <Form.Item name="appId" label="App ID">
-              <Input placeholder="模糊搜索" allowClear />
-            </Form.Item>
-            <Form.Item name="enabled" label="状态">
-              <Select
-                allowClear
-                placeholder="全部"
-                style={{ width: 100 }}
-                options={[
-                  { label: '启用', value: true },
-                  { label: '禁用', value: false },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" icon={<SearchOutlined />} onClick={search.submit}>
-                搜索
+      <Card className="!mb-0">
+        <Form form={searchForm} layout="inline" onFinish={submitSearch}>
+          <Form.Item name="name" label="应用名称">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="code" label="应用编码">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="enabled" label="状态">
+            <Select
+              allowClear
+              options={[
+                { label: '启用', value: true },
+                { label: '禁用', value: false },
+              ]}
+              style={{ width: 120 }}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                查询
               </Button>
-            </Form.Item>
-            <Form.Item>
-              <Button onClick={search.reset}>重置</Button>
-            </Form.Item>
-          </Form>
-        </Card>
+              <Button
+                onClick={() => {
+                  searchForm.resetFields();
+                  setQuery({ page: 1, pageSize: query.pageSize });
+                }}
+              >
+                重置
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
 
-        <Card className="shadow-sm">
-          <Table
-            columns={columns}
-            rowKey="id"
-            {...tableProps}
-            onRow={(item) => ({
-              onClick: () => goToLogs(item),
-              style: { cursor: 'pointer' },
-            })}
-          />
-        </Card>
-
-        <EditSystemModal
-          open={open}
-          record={record}
+      <Card className="mt-4!">
+        <Table<MonitorApp>
+          rowKey="id"
           loading={loading}
-          onOk={handleOk}
-          onCancel={() => setOpen(false)}
+          dataSource={apps}
+          columns={[
+            { title: '应用名称', dataIndex: 'name', key: 'name' },
+            {
+              title: '应用编码',
+              dataIndex: 'code',
+              key: 'code',
+              render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
+            },
+            {
+              title: '状态',
+              dataIndex: 'enabled',
+              key: 'enabled',
+              render: (enabled: boolean) => (
+                <Tag color={enabled ? 'success' : 'default'}>{enabled ? '启用' : '禁用'}</Tag>
+              ),
+            },
+            {
+              title: '更新时间',
+              dataIndex: 'updatedAt',
+              key: 'updatedAt',
+              render: (value: string) => formatDate(value),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 230,
+              render: (_: unknown, app: MonitorApp) => (
+                <Space>
+                  <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(app)}>
+                    编辑
+                  </Button>
+                  <Button type="link" onClick={() => navigate(`/admin/monitor/${app.id}`)}>
+                    查看日志
+                  </Button>
+                  <Popconfirm
+                    title={`确认${app.enabled ? '禁用' : '启用'}此应用？`}
+                    onConfirm={() => void toggleEnabled(app)}
+                  >
+                    <Button type="link" danger={app.enabled}>
+                      {app.enabled ? '禁用' : '启用'}
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+          pagination={{
+            current: query.page,
+            pageSize: query.pageSize,
+            total,
+            showSizeChanger: true,
+            showTotal: (value) => `共 ${value} 条`,
+            onChange: (page, pageSize) => setQuery((current) => ({ ...current, page, pageSize })),
+          }}
         />
-      </Layout.Content>
-    </Layout>
+      </Card>
+
+      <EditMonitorAppModal
+        open={modalOpen}
+        record={editingApp}
+        loading={saving}
+        onOk={handleSave}
+        onCancel={() => setModalOpen(false)}
+      />
+    </Content>
   );
 }

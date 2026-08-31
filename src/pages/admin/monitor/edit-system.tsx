@@ -1,16 +1,21 @@
-import { App, Switch } from 'antd';
-import type { BusinessSystem } from './types';
-import { createBusinessSystem, removeBusinessSystem, updateBusinessSystem } from './api';
+import { Switch } from 'antd';
+import type { MonitorApp } from './types';
 
-export type EditSystemModalProps = {
+export interface EditMonitorAppModalProps {
   open: boolean;
-  record?: BusinessSystem;
+  record?: MonitorApp;
   loading: boolean;
-  onOk: (values: { name: string; enabled: boolean }) => void;
+  onOk: (_values: { code: string; name: string; enabled: boolean }) => void;
   onCancel?: () => void;
-};
+}
 
-export function EditSystemModal({ open, record, loading, onOk, onCancel }: EditSystemModalProps) {
+export function EditMonitorAppModal({
+  open,
+  record,
+  loading,
+  onOk,
+  onCancel,
+}: EditMonitorAppModalProps) {
   const [form] = Form.useForm();
 
   function handleOk() {
@@ -19,37 +24,40 @@ export function EditSystemModal({ open, record, loading, onOk, onCancel }: EditS
 
   useEffect(() => {
     if (record) {
-      form.setFieldsValue({ name: record.name, enabled: record.enabled });
+      form.setFieldsValue({ code: record.code, name: record.name, enabled: record.enabled });
     } else {
       form.resetFields();
       form.setFieldsValue({ enabled: true });
     }
     return () => form.resetFields();
-  }, [record, open, form]);
+  }, [form, record, open]);
 
   return (
     <Modal
-      title={record ? '编辑业务系统' : '新增业务系统'}
+      title={record ? '编辑监控应用' : '新增监控应用'}
       open={open}
       onOk={handleOk}
       onCancel={onCancel}
       confirmLoading={loading}
     >
-      <Form form={form} layout="horizontal" labelCol={{ span: 5 }} className="pt-4!">
-        {record && (
-          <Form.Item label="App ID">
-            <Typography.Text copyable>{record.appId}</Typography.Text>
-          </Form.Item>
-        )}
+      <Form form={form} layout="vertical" className="pt-4!">
         <Form.Item
-          label="系统名称"
-          name="name"
+          label="应用编码"
+          name="code"
           rules={[
-            { required: true, message: '请输入系统名称' },
-            { max: 128, message: '名称最多 128 个字符' },
+            { required: true, message: '请输入应用编码' },
+            { max: 80, message: '应用编码不能超过80个字符' },
+            { min: 2, message: '应用编码不能少于2个字符' },
           ]}
         >
-          <Input placeholder="业务系统名称" />
+          <Input disabled={!!record} placeholder="例如 survey-admin" />
+        </Form.Item>
+        <Form.Item
+          label="应用名称"
+          name="name"
+          rules={[{ required: true, message: '请输入应用名称' }, { max: 120 }]}
+        >
+          <Input placeholder="监控应用名称" />
         </Form.Item>
         <Form.Item label="状态" name="enabled" valuePropName="checked">
           <Switch checkedChildren="启用" unCheckedChildren="禁用" />
@@ -57,45 +65,4 @@ export function EditSystemModal({ open, record, loading, onOk, onCancel }: EditS
       </Form>
     </Modal>
   );
-}
-
-export function useSystemManagement() {
-  const [open, setOpen] = useState(false);
-  const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-
-  async function onDelete(id: number) {
-    if (loading) return;
-    try {
-      setLoading(true);
-      await removeBusinessSystem(id);
-      message.success('删除成功');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onEdit(record: BusinessSystem, values: { name: string; enabled: boolean }) {
-    if (loading) return;
-    try {
-      setLoading(true);
-      await updateBusinessSystem({ id: record.id, ...values });
-      message.success('更新成功');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onAdd(values: { name: string; enabled: boolean }) {
-    if (loading) return;
-    try {
-      setLoading(true);
-      await createBusinessSystem(values);
-      message.success('创建成功');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { open, setOpen, loading, onDelete, onEdit, onAdd };
 }

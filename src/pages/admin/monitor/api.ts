@@ -1,28 +1,37 @@
 import { request } from '@/services';
-import type { BusinessSystem, CreateBusinessSystemDto, UpdateBusinessSystemDto } from './types';
+import type {
+  ClientErrorCursorResult,
+  CreateMonitorAppInput,
+  CreateMonitorAppResult,
+  MonitorAppPageResult,
+  UpdateMonitorAppInput,
+} from './types';
 
-const BASE = '/api/error-report';
+const BASE = '/api/monitoring';
 
-export function getBusinessSystemList(params: Record<string, unknown>) {
-  return request.get('/api/error-report/systems/list', { params });
+export function getMonitorApps(params: {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  code?: string;
+  enabled?: boolean;
+}) {
+  return request.get<MonitorAppPageResult>(`${BASE}/apps`, { params });
 }
 
-export function getBusinessSystem(id: number) {
-  return request.get<BusinessSystem>(`${BASE}/systems/${id}`);
+export function createMonitorApp(data: CreateMonitorAppInput) {
+  return request.post<CreateMonitorAppResult>(`${BASE}/apps`, data);
 }
 
-export function createBusinessSystem(data: CreateBusinessSystemDto) {
-  return request.post(`${BASE}/systems/create`, data);
+export function updateMonitorApp(id: string, data: UpdateMonitorAppInput) {
+  return request.post(`${BASE}/apps/${id}/update`, data);
 }
 
-export function updateBusinessSystem(data: UpdateBusinessSystemDto) {
-  return request.post(`${BASE}/systems/update`, data);
-}
-
-export function removeBusinessSystem(id: number) {
-  return request.post(`${BASE}/systems/remove/${id}`);
-}
-
-export function getMonitorLogList(params: { systemId: number; page?: number; pageSize?: number }) {
-  return request.get(`${BASE}/logs`, { params });
+export function getClientErrors(params: {
+  appId: string;
+  pageSize?: number;
+  cursor?: string;
+  fingerprint?: string;
+}) {
+  return request.get<ClientErrorCursorResult>(`${BASE}/client-errors`, { params });
 }

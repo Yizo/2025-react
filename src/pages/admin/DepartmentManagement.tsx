@@ -1,430 +1,342 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  Layout,
-  Tree,
+  App,
   Button,
-  Modal,
+  Card,
   Form,
   Input,
+  InputNumber,
+  Layout,
+  Modal,
+  Popconfirm,
   Select,
   Space,
-  message,
-  Popconfirm,
-  Card,
+  Table,
   Tag,
-  Avatar,
-  Statistic,
+  Typography,
 } from 'antd';
+import { ApartmentOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { formatDate } from '@/utils/date.util';
 import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ApartmentOutlined,
-  UserOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
-import type { DataNode } from 'antd/es/tree';
+  createDepartment,
+  getDepartments,
+  removeDepartment,
+  updateDepartment,
+  type Department,
+  type DepartmentQuery,
+  type Status,
+} from './api';
+import LazyDepartmentTreeSelect from './components/LazyDepartmentTreeSelect';
 
 const { Content } = Layout;
-const { Option } = Select;
 
-// 部门数据类型
-interface Department {
-  id: string;
-  name: string;
-  code: string;
-  description?: string;
-  parentId?: string;
-  leader?: string;
-  leaderId?: string;
+const statusOptions: { label: string; value: Status }[] = [
+  { label: '启用', value: 1 },
+  { label: '停用', value: 0 },
+];
+
+interface DepartmentFormValues {
+  deptName: string;
+  parentId: number | null;
   sort: number;
-  status: 'active' | 'inactive';
-  children?: Department[];
-  userCount?: number;
-  createTime: string;
+  status: Status;
+}
+
+function collectDescendantIds(items: Department[], id: number): Set<number> {
+  const descendants = new Set<number>();
+  const queue = items.filter((item) => item.parentId === id).map((item) => item.id);
+  while (queue.length) {
+    const current = queue.shift();
+    if (current === undefined || descendants.has(current)) continue;
+    descendants.add(current);
+    queue.push(...items.filter((item) => item.parentId === current).map((item) => item.id));
+  }
+  return descendants;
+}
+
+function buildLoadedTree(
+  items: Department[],
+  childrenByParent: Map<number, Department[]>
+): Department[] {
+  return items.map((item) => {
+    const children = childrenByParent.get(item.id);
+    return {
+      ...item,
+      ...(children ? { children: buildLoadedTree(children, childrenByParent) } : {}),
+    };
+  });
 }
 
 export default function DepartmentManagement() {
-  const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const { message } = App.useApp();
+  const [query, setQuery] = useState<DepartmentQuery>({ page: 1, pageSize: 100 });
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-  const [form] = Form.useForm();
-
-  // 模拟部门数据
-  const mockDepartments: Department[] = [
-    {
-      id: '1',
-      name: '总公司',
-      code: 'company',
-      description: '公司总部',
-      sort: 1,
-      status: 'active',
-      leader: '张总',
-      leaderId: '1',
-      userCount: 50,
-      createTime: '2024-01-01',
-      children: [
-        {
-          id: '1-1',
-          name: '技术部',
-          code: 'tech',
-          description: '负责技术开发',
-          parentId: '1',
-          sort: 1,
-          status: 'active',
-          leader: '李工',
-          leaderId: '2',
-          userCount: 20,
-          createTime: '2024-01-01',
-          children: [
-            {
-              id: '1-1-1',
-              name: '前端组',
-              code: 'frontend',
-              description: '前端开发团队',
-              parentId: '1-1',
-              sort: 1,
-              status: 'active',
-              leader: '王前',
-              leaderId: '3',
-              userCount: 8,
-              createTime: '2024-01-15',
-            },
-            {
-              id: '1-1-2',
-              name: '后端组',
-              code: 'backend',
-              description: '后端开发团队',
-              parentId: '1-1',
-              sort: 2,
-              status: 'active',
-              leader: '赵后',
-              leaderId: '4',
-              userCount: 12,
-              createTime: '2024-01-15',
-            },
-          ],
-        },
-        {
-          id: '1-2',
-          name: '产品部',
-          code: 'product',
-          description: '负责产品设计',
-          parentId: '1',
-          sort: 2,
-          status: 'active',
-          leader: '刘产',
-          leaderId: '5',
-          userCount: 15,
-          createTime: '2024-01-01',
-        },
-        {
-          id: '1-3',
-          name: '运营部',
-          code: 'operation',
-          description: '负责运营推广',
-          parentId: '1',
-          sort: 3,
-          status: 'active',
-          leader: '陈运',
-          leaderId: '6',
-          userCount: 15,
-          createTime: '2024-01-01',
-        },
-      ],
-    },
-  ];
-
-  // 模拟用户数据（用于选择负责人）
-  const mockUsers = [
-    { id: '1', name: '张总' },
-    { id: '2', name: '李工' },
-    { id: '3', name: '王前' },
-    { id: '4', name: '赵后' },
-    { id: '5', name: '刘产' },
-    { id: '6', name: '陈运' },
-  ];
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [childrenLoading, setChildrenLoading] = useState<Set<number>>(new Set());
+  const [childrenByParent, setChildrenByParent] = useState<Map<number, Department[]>>(new Map());
+  const [loadedParentIds, setLoadedParentIds] = useState<Set<number>>(new Set());
+  const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department>();
+  const [searchForm] = Form.useForm<DepartmentQuery>();
+  const [form] = Form.useForm<DepartmentFormValues>();
 
   useEffect(() => {
-    fetchDepartments();
-  }, []);
+    let active = true;
+    setChildrenByParent(new Map());
+    setLoadedParentIds(new Set());
+    setExpandedRowKeys([]);
+    setLoading(true);
+    getDepartments(query)
+      .then((response) => {
+        if (!active) return;
+        setDepartments(response.data.items);
+        setTotal(response.data.total);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query]);
 
-  const fetchDepartments = async () => {
-    // 模拟API调用
-    setTimeout(() => {
-      setDepartments(mockDepartments);
-      setTreeData(convertToTreeData(mockDepartments));
-    }, 500);
-  };
+  const treeData = useMemo(() => {
+    const topLevel =
+      query.parentId === undefined
+        ? departments.filter((department) => department.parentId === null)
+        : departments;
+    return buildLoadedTree(topLevel, childrenByParent);
+  }, [childrenByParent, departments, query.parentId]);
+  const excludedParentIds = useMemo(() => {
+    const excluded = editingDepartment
+      ? new Set([editingDepartment.id, ...collectDescendantIds(departments, editingDepartment.id)])
+      : new Set<number>();
+    return excluded;
+  }, [departments, editingDepartment]);
 
-  // 转换部门数据为Tree组件格式
-  const convertToTreeData = (depts: Department[]): DataNode[] => {
-    return depts.map((dept) => ({
-      title: (
-        <div className="flex items-center justify-between w-full pr-4">
-          <div className="flex items-center space-x-3">
-            <Avatar size="small" icon={<ApartmentOutlined />} />
-            <div>
-              <div className="font-medium">{dept.name}</div>
-              <div className="text-xs  flex items-center space-x-2">
-                <span>{dept.description}</span>
-                {dept.leader && (
-                  <span className="flex items-center">
-                    <UserOutlined className="mr-1" />
-                    {dept.leader}
-                  </span>
-                )}
-                <Tag color={dept.status === 'active' ? 'green' : 'red'}>
-                  {dept.status === 'active' ? '正常' : '禁用'}
-                </Tag>
-                <span className="flex items-center">
-                  <TeamOutlined className="mr-1" />
-                  {dept.userCount || 0}人
-                </span>
-              </div>
-            </div>
-          </div>
-          <Space size="small">
-            <Button
-              size="small"
-              icon={<PlusOutlined />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAdd(dept.id);
-              }}
-            />
-            <Button
-              size="small"
-              icon={<EditOutlined />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(dept);
-              }}
-            />
-            <Popconfirm
-              title="确定删除这个部门吗？"
-              onConfirm={(e) => {
-                e?.stopPropagation();
-                handleDelete(dept.id);
-              }}
-              onCancel={(e) => e?.stopPropagation()}
-            >
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Popconfirm>
-          </Space>
-        </div>
-      ),
-      key: dept.id,
-      children: dept.children ? convertToTreeData(dept.children) : [],
-    }));
-  };
+  async function loadDepartmentChildren(expanded: boolean, department: Department) {
+    setExpandedRowKeys((current) =>
+      expanded
+        ? [...new Set([...current, department.id])]
+        : current.filter((id) => id !== department.id)
+    );
+    if (!expanded || loadedParentIds.has(department.id)) return;
 
-  const handleAdd = (parentId?: string) => {
-    setEditingDepartment(null);
-    form.resetFields();
-    if (parentId) {
-      form.setFieldsValue({ parentId });
+    setChildrenLoading((current) => new Set(current).add(department.id));
+    try {
+      const response = await getDepartments({
+        page: 1,
+        pageSize: 100,
+        parentId: department.id,
+        ...(query.status !== undefined ? { status: query.status } : {}),
+      });
+      setChildrenByParent((current) => {
+        const next = new Map(current);
+        next.set(department.id, response.data.items);
+        return next;
+      });
+      setLoadedParentIds((current) => new Set(current).add(department.id));
+    } finally {
+      setChildrenLoading((current) => {
+        const next = new Set(current);
+        next.delete(department.id);
+        return next;
+      });
     }
-    form.setFieldsValue({ status: 'active', sort: 1 });
-    setIsModalVisible(true);
-  };
+  }
 
-  const handleEdit = (department: Department) => {
+  function openCreate() {
+    setEditingDepartment(undefined);
+    form.resetFields();
+    form.setFieldsValue({ parentId: null, sort: 0, status: 1 });
+    setModalOpen(true);
+  }
+
+  function openEdit(department: Department) {
     setEditingDepartment(department);
     form.setFieldsValue({
-      name: department.name,
-      code: department.code,
-      description: department.description,
+      deptName: department.deptName,
       parentId: department.parentId,
-      leaderId: department.leaderId,
       sort: department.sort,
       status: department.status,
     });
-    setIsModalVisible(true);
-  };
+    setModalOpen(true);
+  }
 
-  const handleDelete = (_id: string) => {
-    // 这里应该调用删除API
-    message.success('删除成功');
-    // 刷新数据
-    fetchDepartments();
-  };
-
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const leader = mockUsers.find((user) => user.id === values.leaderId);
-
-      if (editingDepartment) {
-        // 编辑
-        console.log('编辑部门:', { ...values, leader: leader?.name });
-        message.success('编辑成功');
-      } else {
-        // 新增
-        console.log('新增部门:', { ...values, leader: leader?.name });
-        message.success('新增成功');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-      // 刷新数据
-      fetchDepartments();
-    } catch (error) {
-      console.error('表单验证失败:', error);
+  async function saveDepartment(values: DepartmentFormValues) {
+    const payload = {
+      deptName: values.deptName,
+      parentId: values.parentId ?? null,
+      sort: values.sort ?? 0,
+      status: values.status,
+    };
+    if (editingDepartment) {
+      await updateDepartment(editingDepartment.id, payload);
+      message.success('部门更新成功');
+    } else {
+      await createDepartment(payload);
+      message.success('部门创建成功');
     }
-  };
+    setModalOpen(false);
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-  };
+  async function handleRemove(department: Department) {
+    await removeDepartment(department.id);
+    message.success('部门已删除');
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  // 计算总人数
-  const getTotalUserCount = (depts: Department[]): number => {
-    return depts.reduce((total, dept) => {
-      return total + (dept.userCount || 0) + (dept.children ? getTotalUserCount(dept.children) : 0);
-    }, 0);
-  };
+  function submitSearch(values: Partial<DepartmentQuery>) {
+    setQuery({
+      page: 1,
+      pageSize: query.pageSize,
+      ...(values.deptName ? { deptName: values.deptName.trim() } : {}),
+      ...(values.parentId !== undefined ? { parentId: values.parentId } : {}),
+      ...(values.status !== undefined ? { status: values.status } : {}),
+    });
+  }
 
-  const totalUserCount = getTotalUserCount(departments);
-  const totalDepartments =
-    departments.length +
-    departments.reduce((total, dept) => {
-      return (
-        total +
-        (dept.children
-          ? dept.children.length +
-            dept.children.reduce((subTotal, subDept) => {
-              return subTotal + (subDept.children ? subDept.children.length : 0);
-            }, 0)
-          : 0)
-      );
-    }, 0);
+  function resetSearch() {
+    searchForm.resetFields();
+    setQuery({ page: 1, pageSize: query.pageSize });
+  }
 
   return (
-    <Layout className="min-h-[calc(100vh-64px-70px)]">
-      <Content className="p-6 ">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold flex items-center">
+    <Content className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Typography.Title level={2} className="!mb-1">
             <ApartmentOutlined className="mr-2" />
             部门管理
-          </h1>
-          <p className="mt-2">管理系统组织架构，支持树形结构</p>
+          </Typography.Title>
+          <Typography.Text type="secondary">维护组织层级、排序和部门状态</Typography.Text>
         </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          新增部门
+        </Button>
+      </div>
 
-        {/* 统计卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <Statistic
-              title="总部门数"
-              value={totalDepartments}
-              prefix={<ApartmentOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-          <Card>
-            <Statistic
-              title="总人数"
-              value={totalUserCount}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-          <Card>
-            <Statistic
-              title="活跃部门"
-              value={totalDepartments}
-              prefix={<ApartmentOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </div>
+      <Card className="!mb-0">
+        <Form form={searchForm} layout="inline" onFinish={submitSearch}>
+          <Form.Item name="deptName" label="部门名称">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="parentId" label="父部门">
+            <LazyDepartmentTreeSelect placeholder="全部" />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select allowClear options={statusOptions} style={{ width: 120 }} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                查询
+              </Button>
+              <Button onClick={resetSearch}>重置</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
 
-        <div className="flex justify-between items-center mb-4">
-          <div></div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd()}>
-            新增根部门
-          </Button>
-        </div>
+      <Card className="mt-4!">
+        <Table<Department>
+          rowKey="id"
+          loading={loading || childrenLoading.size > 0}
+          dataSource={treeData}
+          expandable={{
+            expandedRowKeys,
+            onExpand: (expanded, department) => void loadDepartmentChildren(expanded, department),
+            rowExpandable: (department) =>
+              departments.some((item) => item.parentId === department.id) ||
+              childrenByParent.has(department.id),
+          }}
+          columns={[
+            { title: '部门名称', dataIndex: 'deptName', key: 'deptName' },
+            {
+              title: '祖级路径',
+              dataIndex: 'ancestors',
+              key: 'ancestors',
+              render: (value: string) => value || '根部门',
+            },
+            { title: '排序', dataIndex: 'sort', key: 'sort', width: 90 },
+            { title: '状态', dataIndex: 'status', key: 'status', render: statusTag },
+            {
+              title: '更新时间',
+              dataIndex: 'updatedAt',
+              key: 'updatedAt',
+              render: (value: string) => formatDate(value),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 150,
+              render: (_: unknown, department: Department) => (
+                <Space>
+                  <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(department)}>
+                    编辑
+                  </Button>
+                  <Popconfirm
+                    title="确认软删除此部门？"
+                    description="存在有效子部门或关联用户时后端会拒绝删除。"
+                    onConfirm={() => handleRemove(department)}
+                  >
+                    <Button type="link" danger>
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+          pagination={{
+            current: query.page,
+            pageSize: query.pageSize,
+            total,
+            showSizeChanger: false,
+            showTotal: (value) => `共 ${value} 条`,
+            onChange: (page) => setQuery((current) => ({ ...current, page })),
+          }}
+        />
+      </Card>
 
-        <Card className="shadow-sm">
-          <Tree treeData={treeData} defaultExpandAll showLine className="custom-tree" />
-        </Card>
-
-        <Modal
-          title={editingDepartment ? '编辑部门' : '新增部门'}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={handleModalCancel}
-          width={600}
+      <Modal
+        title={editingDepartment ? '编辑部门' : '新增部门'}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={() => form.submit()}
+        destroyOnHidden
+      >
+        <Form<DepartmentFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={saveDepartment}
+          initialValues={{ parentId: null, sort: 0, status: 1 }}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{
-              sort: 1,
-              status: 'active',
-            }}
+          <Form.Item
+            name="deptName"
+            label="部门名称"
+            rules={[{ required: true, message: '请输入部门名称' }, { max: 100 }]}
           >
-            <Form.Item
-              name="name"
-              label="部门名称"
-              rules={[{ required: true, message: '请输入部门名称' }]}
-            >
-              <Input placeholder="请输入部门名称" />
-            </Form.Item>
-
-            <Form.Item
-              name="code"
-              label="部门编码"
-              rules={[
-                { required: true, message: '请输入部门编码' },
-                { pattern: /^[a-z_]+$/, message: '部门编码只能包含小写字母和下划线' },
-              ]}
-            >
-              <Input placeholder="请输入部门编码" disabled={!!editingDepartment} />
-            </Form.Item>
-
-            <Form.Item name="description" label="部门描述">
-              <Input.TextArea placeholder="请输入部门描述" rows={3} />
-            </Form.Item>
-
-            <Form.Item name="leaderId" label="负责人">
-              <Select placeholder="请选择负责人">
-                {mockUsers.map((user) => (
-                  <Option key={user.id} value={user.id}>
-                    {user.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="sort" label="排序">
-              <Input type="number" placeholder="请输入排序号" />
-            </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Select placeholder="请选择状态">
-                <Option value="active">正常</Option>
-                <Option value="inactive">禁用</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="parentId" label="上级部门" hidden={!editingDepartment}>
-              <Input disabled />
-            </Form.Item>
-          </Form>
-        </Modal>
-      </Content>
-    </Layout>
+            <Input />
+          </Form.Item>
+          <Form.Item name="parentId" label="父部门">
+            <LazyDepartmentTreeSelect placeholder="根部门" excludeIds={excludedParentIds} />
+          </Form.Item>
+          <Form.Item name="sort" label="排序">
+            <InputNumber min={0} precision={0} className="w-full" />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select options={statusOptions} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Content>
   );
+}
+
+function statusTag(status: Status) {
+  return <Tag color={status === 1 ? 'success' : 'default'}>{status === 1 ? '启用' : '停用'}</Tag>;
 }

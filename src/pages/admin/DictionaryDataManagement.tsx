@@ -5,6 +5,7 @@ import {
   Card,
   Form,
   Input,
+  InputNumber,
   Layout,
   Modal,
   Popconfirm,
@@ -15,15 +16,17 @@ import {
   Typography,
 } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import { formatDate } from '@/utils/date.util';
 import {
-  createDictType,
-  getDictTypes,
-  removeDictType,
-  updateDictType,
+  createDictData,
+  getDictType,
+  getDictData,
+  removeDictData,
+  updateDictData,
+  type DictData,
+  type DictDataQuery,
   type DictType,
-  type DictTypeQuery,
   type Status,
 } from './api';
 
@@ -34,32 +37,44 @@ const statusOptions: { label: string; value: Status }[] = [
   { label: '停用', value: 0 },
 ];
 
-interface DictTypeFormValues {
-  dictName: string;
-  dictType: string;
+interface DictDataFormValues {
+  label: string;
+  value: string;
+  sort: number;
   status: Status;
   remark?: string;
 }
 
-export default function DictionaryManagement() {
+export default function DictionaryDataManagement() {
   const { message } = App.useApp();
-  const navigate = useNavigate();
-  const [query, setQuery] = useState<DictTypeQuery>({ page: 1, pageSize: 20 });
-  const [types, setTypes] = useState<DictType[]>([]);
+  const { dictTypeId = '', dictType = '' } = useParams<{
+    dictTypeId: string;
+    dictType: string;
+  }>();
+  const numericTypeId = Number(dictTypeId);
+  const [type, setType] = useState<DictType>();
+  const [query, setQuery] = useState<DictDataQuery>({ page: 1, pageSize: 20, dictType });
+  const [data, setData] = useState<DictData[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingType, setEditingType] = useState<DictType>();
-  const [searchForm] = Form.useForm<DictTypeQuery>();
-  const [form] = Form.useForm<DictTypeFormValues>();
+  const [editingData, setEditingData] = useState<DictData>();
+  const [searchForm] = Form.useForm<Pick<DictDataQuery, 'label' | 'value' | 'status'>>();
+  const [form] = Form.useForm<DictDataFormValues>();
 
   useEffect(() => {
+    if (!Number.isInteger(numericTypeId) || !dictType) return;
+    getDictType(numericTypeId).then((response) => setType(response.data));
+  }, [dictType, numericTypeId]);
+
+  useEffect(() => {
+    if (!dictType) return;
     let active = true;
     setLoading(true);
-    getDictTypes(query)
+    getDictData(query)
       .then((response) => {
         if (!active) return;
-        setTypes(response.data.items);
+        setData(response.data.items);
         setTotal(response.data.total);
       })
       .finally(() => {
@@ -68,81 +83,85 @@ export default function DictionaryManagement() {
     return () => {
       active = false;
     };
-  }, [query]);
+  }, [dictType, query]);
 
   function openCreate() {
-    setEditingType(undefined);
+    setEditingData(undefined);
     form.resetFields();
-    form.setFieldsValue({ status: 1 });
+    form.setFieldsValue({ sort: 0, status: 1 });
     setModalOpen(true);
   }
 
-  function openEdit(item: DictType) {
-    setEditingType(item);
+  function openEdit(item: DictData) {
+    setEditingData(item);
     form.setFieldsValue({
-      dictName: item.dictName,
-      dictType: item.dictType,
+      label: item.label,
+      value: item.value,
+      sort: item.sort,
       status: item.status,
       remark: item.remark ?? undefined,
     });
     setModalOpen(true);
   }
 
-  async function saveType(values: DictTypeFormValues) {
+  async function saveData(values: DictDataFormValues) {
     const payload = {
-      dictName: values.dictName,
+      label: values.label,
+      value: values.value,
+      sort: values.sort ?? 0,
       status: values.status,
       remark: values.remark?.trim() || null,
     };
-    if (editingType) {
-      await updateDictType(editingType.id, payload);
-      message.success('字典类型更新成功');
+    if (editingData) {
+      await updateDictData(editingData.id, payload);
+      message.success('字典数据更新成功');
     } else {
-      await createDictType({ ...payload, dictType: values.dictType });
-      message.success('字典类型创建成功');
+      await createDictData({ ...payload, dictType });
+      message.success('字典数据创建成功');
     }
     setModalOpen(false);
     setQuery((current) => ({ ...current, page: 1 }));
   }
 
-  async function handleRemove(item: DictType) {
-    await removeDictType(item.id);
-    message.success('字典类型已删除');
+  async function handleRemove(item: DictData) {
+    await removeDictData(item.id);
+    message.success('字典数据已删除');
     setQuery((current) => ({ ...current, page: 1 }));
   }
 
-  function submitSearch(values: Partial<DictTypeQuery>) {
+  function submitSearch(values: Partial<DictDataQuery>) {
     setQuery({
       page: 1,
       pageSize: query.pageSize,
-      ...(values.dictName?.trim() ? { dictName: values.dictName.trim() } : {}),
-      ...(values.dictType?.trim() ? { dictType: values.dictType.trim() } : {}),
+      dictType,
+      ...(values.label?.trim() ? { label: values.label.trim() } : {}),
+      ...(values.value?.trim() ? { value: values.value.trim() } : {}),
       ...(values.status !== undefined ? { status: values.status } : {}),
     });
   }
 
   return (
     <Content className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Typography.Title level={2} className="!mb-1">
-            字典管理
+      <div className="mb-6 flex items-end justify-between">
+        <Space orientation="vertical" size={4}>
+          <Typography.Title level={2} className="!mb-0">
+            {type?.dictName ?? dictType}
           </Typography.Title>
           <Typography.Text type="secondary">
-            先选择字典类型，再维护该类型下的字典数据
+            字典编码：<Typography.Text code>{type?.dictType ?? dictType}</Typography.Text>
           </Typography.Text>
-        </div>
+        </Space>
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          新增字典类型
+          新增字典数据
         </Button>
       </div>
 
       <Card className="!mb-0">
         <Form form={searchForm} layout="inline" onFinish={submitSearch}>
-          <Form.Item name="dictName" label="字典名称">
+          <Form.Item name="label" label="字典标签">
             <Input allowClear placeholder="模糊搜索" />
           </Form.Item>
-          <Form.Item name="dictType" label="字典编码">
+          <Form.Item name="value" label="字典值">
             <Input allowClear placeholder="模糊搜索" />
           </Form.Item>
           <Form.Item name="status" label="状态">
@@ -156,7 +175,7 @@ export default function DictionaryManagement() {
               <Button
                 onClick={() => {
                   searchForm.resetFields();
-                  setQuery({ page: 1, pageSize: query.pageSize });
+                  setQuery({ page: 1, pageSize: query.pageSize, dictType });
                 }}
               >
                 重置
@@ -167,22 +186,14 @@ export default function DictionaryManagement() {
       </Card>
 
       <Card className="mt-4!">
-        <Table<DictType>
+        <Table<DictData>
           rowKey="id"
           loading={loading}
-          dataSource={types}
-          onRow={(item) => ({
-            onClick: () => navigate(`/admin/dictionary/data/${item.id}/${item.dictType}`),
-            style: { cursor: 'pointer' },
-          })}
+          dataSource={data}
           columns={[
-            { title: '字典名称', dataIndex: 'dictName', key: 'dictName' },
-            {
-              title: '字典编码',
-              dataIndex: 'dictType',
-              key: 'dictType',
-              render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
-            },
+            { title: '标签', dataIndex: 'label', key: 'label' },
+            { title: '值', dataIndex: 'value', key: 'value' },
+            { title: '排序', dataIndex: 'sort', key: 'sort', width: 90 },
             { title: '状态', dataIndex: 'status', key: 'status', render: statusTag },
             {
               title: '备注',
@@ -201,14 +212,13 @@ export default function DictionaryManagement() {
               title: '操作',
               key: 'actions',
               width: 190,
-              render: (_: unknown, item: DictType) => (
-                <Space onClick={(event) => event.stopPropagation()}>
+              render: (_: unknown, item: DictData) => (
+                <Space>
                   <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(item)}>
                     编辑
                   </Button>
                   <Popconfirm
-                    title="确认软删除此字典类型？"
-                    description="该类型下的字典数据也会一并软删除。"
+                    title="确认软删除此字典数据？"
                     onConfirm={() => void handleRemove(item)}
                   >
                     <Button type="link" danger icon={<DeleteOutlined />}>
@@ -231,35 +241,37 @@ export default function DictionaryManagement() {
       </Card>
 
       <Modal
-        title={editingType ? '编辑字典类型' : '新增字典类型'}
+        title={editingData ? '编辑字典数据' : '新增字典数据'}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onOk={() => form.submit()}
         destroyOnHidden
       >
-        <Form<DictTypeFormValues>
+        <Form<DictDataFormValues>
           form={form}
           layout="vertical"
-          onFinish={saveType}
-          initialValues={{ status: 1 }}
+          onFinish={saveData}
+          initialValues={{ sort: 0, status: 1 }}
         >
+          <Form.Item label="字典编码">
+            <Input value={type?.dictType ?? dictType} disabled />
+          </Form.Item>
           <Form.Item
-            name="dictName"
-            label="字典名称"
-            rules={[{ required: true, message: '请输入字典名称' }, { max: 100 }]}
+            name="label"
+            label="字典标签"
+            rules={[{ required: true, message: '请输入字典标签' }, { max: 100 }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="dictType"
-            label="字典编码"
-            rules={[
-              { required: true, message: '请输入字典编码' },
-              { max: 100, message: '字典编码不能超过100个字符' },
-              { pattern: /^[A-Za-z0-9_]+$/, message: '只能包含字母、数字和下划线' },
-            ]}
+            name="value"
+            label="字典值"
+            rules={[{ required: true, message: '请输入字典值' }, { max: 100 }]}
           >
-            <Input disabled={!!editingType} />
+            <Input />
+          </Form.Item>
+          <Form.Item name="sort" label="排序">
+            <InputNumber min={0} precision={0} className="w-full" />
           </Form.Item>
           <Form.Item name="status" label="状态">
             <Select options={statusOptions} />

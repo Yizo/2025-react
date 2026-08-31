@@ -40,12 +40,17 @@ const config: CustomAxiosRequestConfig = {
   },
   onError: (error) => {
     console.log('onError', error);
-    if (error.status === 491) {
+    const status = error.response?.status;
+    if (status === 401 || status === 491) {
       store.dispatch(clearUser());
     }
   },
 };
 
 const { request, cancel } = requestAxios(config);
+const { request: adminRequest } = requestAxios({
+  ...config,
+  baseURL: import.meta.env.VITE_ADMIN_API_BASE_URL ?? '/api/v1',
+});
 
-export { request, cancel };
+export { request, adminRequest, cancel };

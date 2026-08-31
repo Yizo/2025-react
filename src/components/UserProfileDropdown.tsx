@@ -7,27 +7,6 @@ import { LOGIN_PATH } from '@/router/constant';
 import { useAppDispatch } from '@/store';
 import { setTheme } from '@/store/system';
 
-const settingItems: MenuProps['items'] = [
-  {
-    label: '亮色模式',
-    key: 'light',
-    icon: <SunOutlined />,
-  },
-  {
-    label: '暗色模式',
-    key: 'dark',
-    icon: <MoonOutlined />,
-  },
-  {
-    type: 'divider',
-  },
-  {
-    label: '退出登录',
-    key: 'logout',
-    icon: <LogoutOutlined />,
-  },
-];
-
 function getSettingItems(isLogin = false): MenuProps['items'] {
   const settingItems: MenuProps['items'] = [
     {

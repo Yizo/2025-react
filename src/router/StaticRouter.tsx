@@ -24,10 +24,6 @@ const staticRoutes: RouteObject[] = [
     element: <LazyImport lazy={lazy(() => import('@/pages/Login'))} />,
   },
   {
-    path: '/register',
-    element: <LazyImport lazy={lazy(() => import('@/pages/Register'))} />,
-  },
-  {
     path: '/color',
     element: <LazyImport lazy={lazy(() => import('@/pages/Color'))} />,
   },
@@ -48,6 +44,17 @@ const staticRoutes: RouteObject[] = [
       {
         index: true,
         element: <LazyImport lazy={lazy(() => import('@/pages/three/index'))} />,
+      },
+    ],
+  },
+  // 业务系统初始化
+  {
+    path: '/system-init',
+    element: <Outlet />,
+    children: [
+      {
+        index: true,
+        element: <LazyImport lazy={lazy(() => import('@/pages/system/init/index'))} />,
       },
     ],
   },

@@ -1,368 +1,297 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Layout,
-  Table,
+  App,
   Button,
-  Modal,
+  Card,
   Form,
   Input,
-  Space,
-  message,
+  Layout,
+  Modal,
   Popconfirm,
-  Card,
+  Select,
+  Space,
+  Table,
   Tag,
-  Transfer,
-  Divider,
+  Typography,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, TeamOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
-import type { TransferProps } from 'antd';
+import { EditOutlined, PlusOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons';
+import { formatDate } from '@/utils/date.util';
+import {
+  createRole,
+  getRoles,
+  removeRole,
+  updateRole,
+  type DataScope,
+  type Role,
+  type RoleQuery,
+  type Status,
+} from './api';
 
 const { Content } = Layout;
 
-// 角色数据类型
-interface Role {
-  id: string;
-  name: string;
-  code: string;
-  description?: string;
-  status: 'active' | 'inactive';
-  permissionIds: string[];
-  createTime: string;
-  updateTime: string;
+const dataScopeOptions: { label: string; value: DataScope }[] = [
+  { label: '全部数据', value: 'all' },
+  { label: '自定义数据', value: 'custom' },
+  { label: '本部门数据', value: 'department' },
+  { label: '本部门及下属', value: 'department_and_children' },
+  { label: '仅本人数据', value: 'self' },
+  { label: '无数据权限', value: 'none' },
+];
+
+const statusOptions: { label: string; value: Status }[] = [
+  { label: '启用', value: 1 },
+  { label: '停用', value: 0 },
+];
+
+interface RoleFormValues {
+  roleName: string;
+  roleCode: string;
+  dataScope: DataScope;
+  status: Status;
+  remark?: string;
 }
 
-// 权限数据类型
-interface Permission {
-  id: string;
-  name: string;
-  code: string;
-  type: 'menu' | 'button' | 'api';
-  parentId?: string;
+function statusTag(status: Status) {
+  return <Tag color={status === 1 ? 'success' : 'default'}>{status === 1 ? '启用' : '停用'}</Tag>;
 }
 
 export default function RoleManagement() {
+  const { message } = App.useApp();
+  const [query, setQuery] = useState<RoleQuery>({ page: 1, pageSize: 20 });
   const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
-  const [selectedPermissions, setSelectedPermissions] = useState<React.Key[]>([]);
-
-  // 模拟角色数据
-  const mockRoles: Role[] = [
-    {
-      id: '1',
-      name: '超级管理员',
-      code: 'super_admin',
-      description: '拥有系统所有权限',
-      status: 'active',
-      permissionIds: ['1', '2', '3', '4', '5'],
-      createTime: '2024-01-01',
-      updateTime: '2024-02-09',
-    },
-    {
-      id: '2',
-      name: '管理员',
-      code: 'admin',
-      description: '拥有大部分管理权限',
-      status: 'active',
-      permissionIds: ['2', '3', '4'],
-      createTime: '2024-01-01',
-      updateTime: '2024-02-08',
-    },
-    {
-      id: '3',
-      name: '普通用户',
-      code: 'user',
-      description: '基本用户权限',
-      status: 'active',
-      permissionIds: ['3'],
-      createTime: '2024-01-15',
-      updateTime: '2024-02-01',
-    },
-  ];
-
-  // 模拟权限数据
-  const mockPermissions: Permission[] = [
-    { id: '1', name: '系统管理', code: 'system:manage', type: 'menu' },
-    { id: '2', name: '用户管理', code: 'user:manage', type: 'menu' },
-    { id: '3', name: '问卷管理', code: 'question:manage', type: 'menu' },
-    { id: '4', name: '数据统计', code: 'stat:view', type: 'menu' },
-    { id: '5', name: '系统设置', code: 'system:config', type: 'menu' },
-    { id: '6', name: '用户新增', code: 'user:create', type: 'button', parentId: '2' },
-    { id: '7', name: '用户编辑', code: 'user:update', type: 'button', parentId: '2' },
-    { id: '8', name: '用户删除', code: 'user:delete', type: 'button', parentId: '2' },
-    { id: '9', name: '问卷创建', code: 'question:create', type: 'button', parentId: '3' },
-    { id: '10', name: '问卷编辑', code: 'question:update', type: 'button', parentId: '3' },
-  ];
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role>();
+  const [searchForm] = Form.useForm<RoleQuery>();
+  const [form] = Form.useForm<RoleFormValues>();
 
   useEffect(() => {
-    fetchRoles();
-    fetchPermissions();
-  }, []);
-
-  const fetchRoles = async () => {
+    let active = true;
     setLoading(true);
-    // 模拟API调用
-    setTimeout(() => {
-      setRoles(mockRoles);
-      setLoading(false);
-    }, 500);
-  };
+    getRoles(query)
+      .then((response) => {
+        if (!active) return;
+        setRoles(response.data.items);
+        setTotal(response.data.total);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query]);
 
-  const fetchPermissions = async () => {
-    // 模拟API调用
-    setTimeout(() => {
-      setPermissions(mockPermissions);
-    }, 300);
-  };
-
-  const handleAdd = () => {
-    setEditingRole(null);
+  function openCreate() {
+    setEditingRole(undefined);
     form.resetFields();
-    setSelectedPermissions([]);
-    form.setFieldsValue({ status: 'active' });
-    setIsModalVisible(true);
-  };
+    form.setFieldsValue({ dataScope: 'all', status: 1 });
+    setModalOpen(true);
+  }
 
-  const handleEdit = (role: Role) => {
+  function openEdit(role: Role) {
     setEditingRole(role);
     form.setFieldsValue({
-      name: role.name,
-      code: role.code,
-      description: role.description,
+      roleName: role.roleName,
+      roleCode: role.roleCode,
+      dataScope: role.dataScope,
       status: role.status,
+      remark: role.remark ?? undefined,
     });
-    setSelectedPermissions(role.permissionIds);
-    setIsModalVisible(true);
-  };
+    setModalOpen(true);
+  }
 
-  const handleDelete = async (id: string) => {
-    // 这里应该调用删除API
-    setRoles(roles.filter((role) => role.id !== id));
-    message.success('删除成功');
-  };
+  async function saveRole(values: RoleFormValues) {
+    const payload = {
+      roleName: values.roleName,
+      dataScope: values.dataScope,
+      status: values.status,
+      remark: values.remark?.trim() || null,
+    };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      if (editingRole) {
-        // 编辑
-        setRoles(
-          roles.map((role) =>
-            role.id === editingRole.id
-              ? {
-                  ...role,
-                  ...values,
-                  permissionIds: selectedPermissions,
-                  updateTime: new Date().toISOString().split('T')[0],
-                }
-              : role
-          )
-        );
-        message.success('编辑成功');
-      } else {
-        // 新增
-        const newRole: Role = {
-          id: Date.now().toString(),
-          ...values,
-          permissionIds: selectedPermissions,
-          createTime: new Date().toISOString().split('T')[0],
-          updateTime: new Date().toISOString().split('T')[0],
-        };
-        setRoles([...roles, newRole]);
-        message.success('新增成功');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-      setSelectedPermissions([]);
-    } catch (error) {
-      console.error('表单验证失败:', error);
+    if (editingRole) {
+      await updateRole(editingRole.id, payload);
+      message.success('角色更新成功');
+    } else {
+      await createRole({ ...payload, roleCode: values.roleCode });
+      message.success('角色创建成功');
     }
-  };
+    setModalOpen(false);
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-    setSelectedPermissions([]);
-  };
+  async function handleRemove(role: Role) {
+    await removeRole(role.id);
+    message.success('角色已删除');
+    setQuery((current) => ({ ...current, page: 1 }));
+  }
 
-  const handlePermissionChange: TransferProps['onChange'] = (newTargetKeys) => {
-    setSelectedPermissions(newTargetKeys);
-  };
+  function submitSearch(values: Partial<RoleQuery>) {
+    setQuery({
+      page: 1,
+      pageSize: query.pageSize,
+      ...(values.roleName ? { roleName: values.roleName.trim() } : {}),
+      ...(values.roleCode ? { roleCode: values.roleCode.trim() } : {}),
+      ...(values.dataScope ? { dataScope: values.dataScope } : {}),
+      ...(values.status !== undefined ? { status: values.status } : {}),
+    });
+  }
 
-  const columns: ColumnsType<Role> = [
-    {
-      title: '角色名称',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '角色编码',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>
-          {status === 'active' ? '启用' : '禁用'}
-        </Tag>
-      ),
-    },
-    {
-      title: '权限数量',
-      dataIndex: 'permissionIds',
-      key: 'permissionIds',
-      render: (permissionIds: string[]) => permissionIds.length,
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 150,
-      render: (_, record) => (
-        <Space size="small">
-          <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Popconfirm title="确定删除这个角色吗？" onConfirm={() => handleDelete(record.id)}>
-            <Button size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
-  const transferData = permissions.map((perm) => ({
-    key: perm.id,
-    title: `${perm.name} (${perm.code})`,
-    description: perm.type,
-  }));
+  function resetSearch() {
+    searchForm.resetFields();
+    setQuery({ page: 1, pageSize: query.pageSize });
+  }
 
   return (
-    <Layout className="min-h-[calc(100vh-64px-70px)]">
-      <Content className="p-6 ">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold  flex items-center">
-              <TeamOutlined className="mr-2" />
-              角色管理
-            </h1>
-            <p className=" mt-2">管理系统角色及权限分配</p>
-          </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            新增角色
-          </Button>
+    <Content className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <Typography.Title level={2} className="!mb-1">
+            <TeamOutlined className="mr-2" />
+            角色管理
+          </Typography.Title>
+          <Typography.Text type="secondary">管理角色编码、数据范围和启停状态</Typography.Text>
         </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          新增角色
+        </Button>
+      </div>
 
-        <Card className="shadow-sm">
-          <Table
-            columns={columns}
-            dataSource={roles}
-            rowKey="id"
-            loading={loading}
-            pagination={{
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
-            }}
-          />
-        </Card>
+      <Card className="!mb-0">
+        <Form form={searchForm} layout="inline" onFinish={submitSearch}>
+          <Form.Item name="roleName" label="角色名称">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="roleCode" label="角色编码">
+            <Input allowClear placeholder="模糊搜索" />
+          </Form.Item>
+          <Form.Item name="dataScope" label="数据范围">
+            <Select allowClear options={dataScopeOptions} className="min-w-44" />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select allowClear options={statusOptions} style={{ width: 120 }} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                查询
+              </Button>
+              <Button onClick={resetSearch}>重置</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
 
-        <Modal
-          title={editingRole ? '编辑角色' : '新增角色'}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={handleModalCancel}
-          width={800}
+      <Card className="mt-4!">
+        <Table<Role>
+          rowKey="id"
+          loading={loading}
+          dataSource={roles}
+          columns={[
+            { title: '角色名称', dataIndex: 'roleName', key: 'roleName' },
+            {
+              title: '角色编码',
+              dataIndex: 'roleCode',
+              key: 'roleCode',
+              render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
+            },
+            {
+              title: '数据范围',
+              dataIndex: 'dataScope',
+              key: 'dataScope',
+              render: (value: DataScope) =>
+                dataScopeOptions.find((option) => option.value === value)?.label ?? value,
+            },
+            { title: '状态', dataIndex: 'status', key: 'status', render: statusTag },
+            {
+              title: '备注',
+              dataIndex: 'remark',
+              key: 'remark',
+              ellipsis: true,
+              render: (value: string | null) => value || '-',
+            },
+            {
+              title: '更新时间',
+              dataIndex: 'updatedAt',
+              key: 'updatedAt',
+              render: (value: string) => formatDate(value),
+            },
+            {
+              title: '操作',
+              key: 'actions',
+              width: 150,
+              render: (_: unknown, role: Role) => (
+                <Space>
+                  <Button type="link" icon={<EditOutlined />} onClick={() => openEdit(role)}>
+                    编辑
+                  </Button>
+                  <Popconfirm
+                    title="确认软删除此角色？"
+                    description="删除后无法通过当前接口恢复。"
+                    onConfirm={() => handleRemove(role)}
+                  >
+                    <Button type="link" danger>
+                      删除
+                    </Button>
+                  </Popconfirm>
+                </Space>
+              ),
+            },
+          ]}
+          pagination={{
+            current: query.page,
+            pageSize: query.pageSize,
+            total,
+            showSizeChanger: true,
+            showTotal: (value) => `共 ${value} 条`,
+            onChange: (page, pageSize) => setQuery((current) => ({ ...current, page, pageSize })),
+          }}
+        />
+      </Card>
+
+      <Modal
+        title={editingRole ? '编辑角色' : '新增角色'}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        onOk={() => form.submit()}
+        destroyOnHidden
+      >
+        <Form<RoleFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={saveRole}
+          initialValues={{ dataScope: 'all', status: 1 }}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            initialValues={{
-              status: 'active',
-            }}
+          <Form.Item
+            name="roleName"
+            label="角色名称"
+            rules={[{ required: true, message: '请输入角色名称' }, { max: 100 }]}
           >
-            <Form.Item
-              name="name"
-              label="角色名称"
-              rules={[{ required: true, message: '请输入角色名称' }]}
-            >
-              <Input placeholder="请输入角色名称" />
-            </Form.Item>
-
-            <Form.Item
-              name="code"
-              label="角色编码"
-              rules={[
-                { required: true, message: '请输入角色编码' },
-                { pattern: /^[a-z_]+$/, message: '角色编码只能包含小写字母和下划线' },
-              ]}
-            >
-              <Input placeholder="请输入角色编码" disabled={!!editingRole} />
-            </Form.Item>
-
-            <Form.Item name="description" label="描述">
-              <Input.TextArea placeholder="请输入角色描述" rows={3} />
-            </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Space>
-                <span>启用</span>
-                <Form.Item name="status" noStyle>
-                  <Input type="checkbox" />
-                </Form.Item>
-              </Space>
-            </Form.Item>
-
-            <Divider>权限分配</Divider>
-
-            <Form.Item label="选择权限">
-              <Transfer
-                dataSource={transferData}
-                titles={['可选权限', '已选权限']}
-                targetKeys={selectedPermissions}
-                onChange={handlePermissionChange}
-                render={(item) => `${item.title} - ${item.description}`}
-                listStyle={{
-                  width: 300,
-                  height: 300,
-                }}
-                showSearch
-                filterOption={(inputValue, option) =>
-                  option.title.toLowerCase().indexOf(inputValue.toLowerCase()) > -1
-                }
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
-      </Content>
-    </Layout>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="roleCode"
+            label="角色编码"
+            rules={[
+              { required: true, message: '请输入角色编码' },
+              { max: 100, message: '角色编码不能超过100个字符' },
+              { pattern: /^[A-Za-z0-9_]+$/, message: '只能包含字母、数字和下划线' },
+            ]}
+          >
+            <Input disabled={!!editingRole} />
+          </Form.Item>
+          <Form.Item name="dataScope" label="数据范围">
+            <Select options={dataScopeOptions} />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select options={statusOptions} />
+          </Form.Item>
+          <Form.Item name="remark" label="备注">
+            <Input.TextArea maxLength={500} showCount />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Content>
   );
 }

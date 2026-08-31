@@ -25,13 +25,19 @@ export function getMonitorContext(): MonitorContext {
 /** 优先 sendBeacon（Blob 带 application/json），失败回退 fetch */
 function createMonitorTransport(dsn: string): NonNullable<MonitorConfig['transport']> {
   return async (payloads) => {
-    const body = JSON.stringify(payloads);
+    const ingestKey = import.meta.env.VITE_MONITOR_INGEST_KEY;
+    if (!ingestKey) return;
+
+    const body = JSON.stringify(
+      payloads.map((payload) => ({
+        ...payload,
+        ingestKey,
+      }))
+    );
 
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
       const blob = new Blob([body], { type: 'application/json' });
-      if (navigator.sendBeacon(dsn, blob)) {
-        return;
-      }
+      if (navigator.sendBeacon(dsn, blob)) return;
     }
 
     await fetch(dsn, {
@@ -45,13 +51,14 @@ function createMonitorTransport(dsn: string): NonNullable<MonitorConfig['transpo
 
 export function createAppMonitor(): MonitorInstance {
   const dsn = import.meta.env.VITE_MONITOR_URL;
+  const transport = dsn ? createMonitorTransport(dsn) : async () => undefined;
   const config: MonitorConfig = {
     appId: import.meta.env.VITE_MONITOR_APP_ID ?? '',
     dsn,
     release: import.meta.env.VITE_MONITOR_RELEASE,
     error: true,
     context: getMonitorContext,
-    ...(dsn ? { transport: createMonitorTransport(dsn) } : {}),
+    transport,
   };
 
   return createWebMonitor(config);
